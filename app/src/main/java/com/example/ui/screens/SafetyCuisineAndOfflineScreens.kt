@@ -736,7 +736,7 @@ fun OfflineAndProfileDashboardScreen(
                                 customShareUrl = it
                                 saveCustomShareLink(shareContext, it)
                             },
-                            placeholder = { Text("https://gen-lang-client-0544007391.web.app", color = IvoryMuted) },
+                            placeholder = { Text("https://utkalsarathi.vercel.app", color = IvoryMuted) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )

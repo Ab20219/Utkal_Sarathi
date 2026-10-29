@@ -1,22 +1,10 @@
 {
-  "firestore": [
-    {
-      "database": "ai-studio-android-utkalsar-47b70c34-5223-4df1-8532-ae48353675b2",
-      "rules": "firestore.rules"
-    }
-  ],
-  "emulators": {
-    "firestore": {
-      "host": "127.0.0.1",
-      "port": 8085
-    },
-    "auth": {
-      "host": "127.0.0.1",
-      "port": 9099
-    }
+  "firestore": {
+    "database": "ai-studio-android-utkalsar-47b70c34-5223-4df1-8532-ae48353675b2",
+    "rules": "firestore.rules"
   },
   "hosting": {
-    "public": "web",
+    "public": "web/dist",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -28,5 +16,14 @@
         "destination": "/index.html"
       }
     ]
+  },
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "singleProjectMode": true
   }
 }

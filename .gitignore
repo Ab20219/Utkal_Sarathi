@@ -1,19 +1,45 @@
+# IntelliJ / Android Studio
 *.iml
-.gradle
-.kotlin
+.idea/
+.gradle/
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+captures/
+.externalNativeBuild/
+.cxx/
 local.properties
-.env
+
+# Android Build Outputs
+/build/
+app/build/
+
+# Signing Keys & Keystores (NEVER commit signing keys to public Git repositories)
+*.jks
+*.keystore
 debug.keystore
-*-debug.log
+debug.keystore.base64
+my-upload-key.jks
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+web/.env
+web/.env.local
+web/.env.*.local
+!.env.example
+!web/.env.example
+
+# Web / Node / Vercel / Firebase Artifacts
+node_modules/
+web/node_modules/
+web/dist/
+.vercel/
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+npm-debug.log*
+
+# OS Metadata
+.DS_Store
+Thumbs.db
