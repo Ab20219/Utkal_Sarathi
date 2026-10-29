@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UtkalSarathi — Smart Tourism &amp; Safety for Odisha</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-obsidian: #0B0D10;
+      --bg-surface: #14181E;
+      --bg-elevated: #1D232C;
+      --border: #2C3440;
+      --saffron: #FF7A1A;
+      --gold: #E5B85B;
+      --ivory: #F7F3E8;
+      --muted: #A9A69E;
+      --teal: #1CA39E;
+      --crimson: #E53935;
+      --emerald: #2ECC71;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: radial-gradient(circle at top right, rgba(255,122,26,0.12), transparent 40%), var(--bg-obsidian);
+      color: var(--ivory);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    h1, h2, h3 { font-family: 'Playfair Display', Georgia, serif; letter-spacing: 0.2px; }
+    header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(11, 13, 16, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+    }
+    .header-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .wheel-logo {
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 2px solid var(--gold);
+      background: conic-gradient(from 0deg, var(--saffron), var(--gold), var(--teal), var(--saffron));
+      display: grid; place-items: center; font-weight: 700; color: var(--bg-obsidian);
+    }
+    .brand-title { font-size: 1.45rem; font-weight: 700; color: var(--ivory); }
+    .brand-sub { font-size: 0.78rem; color: var(--gold); }
+    .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .lang-chip, .tab-btn {
+      background: var(--bg-surface); color: var(--muted);
+      border: 1px solid var(--border); border-radius: 999px;
+      padding: 7px 14px; font-size: 0.82rem; cursor: pointer; font-weight: 600;
+      transition: 0.2s;
+    }
+    .lang-chip.active, .tab-btn.active {
+      background: rgba(255, 122, 26, 0.2);
+      color: var(--gold); border-color: var(--saffron);
+    }
+    .btn {
+      border: none; border-radius: 12px; padding: 10px 16px;
+      font-weight: 700; font-size: 0.86rem; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+    }
+    .btn-saffron { background: var(--saffron); color: var(--bg-obsidian); }
+    .btn-whatsapp { background: var(--emerald); color: var(--bg-obsidian); }
+    .btn-sos { background: var(--crimson); color: #fff; }
+    .btn-outline { background: transparent; border: 1px solid var(--gold); color: var(--gold); }
+    main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .hero {
+      background: linear-gradient(135deg, rgba(255,122,26,0.18), rgba(28,163,158,0.14)), var(--bg-surface);
+      border: 1px solid rgba(229, 184, 91, 0.35);
+      border-radius: 24px; padding: 32px; margin-bottom: 24px;
+    }
+    .badge {
+      display: inline-block; padding: 4px 10px; border-radius: 8px;
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      background: rgba(255, 122, 26, 0.2); color: var(--gold); border: 1px solid var(--saffron);
+    }
+    .hero h1 { font-size: clamp(1.8rem, 3.5vw, 2.6rem); margin: 10px 0 8px; }
+    .hero p { color: var(--muted); max-width: 760px; margin-bottom: 18px; }
+    .nav-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+    .search-bar {
+      width: 100%; padding: 14px 18px; border-radius: 14px;
+      background: var(--bg-surface); border: 1px solid var(--border);
+      color: var(--ivory); font-size: 0.96rem; margin-bottom: 16px;
+    }
+    .grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 16px;
+    }
+    .card {
+      background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .card-meta { font-size: 0.75rem; color: var(--teal); font-weight: 700; text-transform: uppercase; }
+    .card h3 { font-size: 1.2rem; color: var(--ivory); }
+    .card-odia { font-size: 0.9rem; color: var(--gold); font-weight: 600; }
+    .card p { font-size: 0.88rem; color: var(--muted); }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .pill {
+      background: var(--bg-elevated); border-radius: 8px; padding: 4px 9px;
+      font-size: 0.75rem; color: var(--ivory);
+    }
+    .section { display: none; }
+    .section.active { display: block; }
+    .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 14px; }
+    label { font-size: 0.8rem; color: var(--gold); display: block; margin-bottom: 4px; }
+    input, select {
+      width: 100%; padding: 10px 12px; border-radius: 10px;
+      background: var(--bg-elevated); border: 1px solid var(--border); color: var(--ivory);
+    }
+    footer {
+      text-align: center; padding: 32px 16px; color: var(--muted); font-size: 0.82rem;
+      border-top: 1px solid var(--border); margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <div class="wheel-logo" aria-hidden="true">☸</div>
+        <div>
+          <div class="brand-title">UtkalSarathi</div>
+          <div class="brand-sub" id="taglineText">Discover Odisha, Your Way • ଉତ୍କଳ ସାରଥୀ</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="lang-chip active" onclick="setLang('en', this)">English</button>
+        <button class="lang-chip" onclick="setLang('or', this)">ଓଡ଼ିଆ (OR)</button>
+        <button class="lang-chip" onclick="setLang('hi', this)">हिन्दी (HI)</button>
+        <button class="btn btn-whatsapp" onclick="shareAppWhatsApp()">Share on WhatsApp</button>
+        <a class="btn btn-sos" href="tel:112">📞 SOS 112</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <span class="badge" id="heroBadge">ALL 30 DISTRICTS OF ODISHA • WEB &amp; ANDROID COMPANION</span>
+      <h1 id="heroTitle">Sacred Temples, Misty Ghats &amp; Maritime Heritage</h1>
+      <p id="heroDesc">Explore all 30 official districts of Odisha from Angul to Sundargarh, listen to Utkal Katha cultural narratives, generate deterministic INR trip budgets, estimate fair transit fares, and access SOS 112 traveller safety.</p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-saffron" onclick="switchTab('planner')">🗺️ Plan Odisha Trip</button>
+        <button class="btn btn-outline" onclick="switchTab('katha')">🔊 Listen to Utkal Katha</button>
+        <button class="btn btn-whatsapp" onclick="shareAppWhatsApp()">💬 Invite on WhatsApp</button>
+      </div>
+    </section>
+
+    <nav class="nav-tabs" aria-label="Primary Sections">
+      <button class="tab-btn active" id="tab-districts" onclick="switchTab('districts')">🏛️ All 30 Districts</button>
+      <button class="tab-btn" id="tab-katha" onclick="switchTab('katha')">📜 Utkal Katha Audio</button>
+      <button class="tab-btn" id="tab-planner" onclick="switchTab('planner')">🧭 Trip &amp; Budget Planner</button>
+      <button class="tab-btn" id="tab-fares" onclick="switchTab('fares')">🚕 Fair Fares &amp; Safety</button>
+    </nav>
+
+    <!-- 1. ALL 30 DISTRICTS -->
+    <div id="sec-districts" class="section active">
+      <input type="search" id="districtSearch" class="search-bar" placeholder="Search all 30 Odisha districts, headquarters, temples, waterfalls, GI crafts…" oninput="renderDistricts()" />
+      <div id="districtCount" style="color:var(--gold); font-size:0.85rem; margin-bottom:12px;"></div>
+      <div id="districtGrid" class="grid"></div>
+    </div>
+
+    <!-- 2. UTKAL KATHA VOICE STORIES -->
+    <div id="sec-katha" class="section">
+      <div class="card" style="margin-bottom:16px; border-color:rgba(229,184,91,0.45);">
+        <h3>Utkal Katha • Browser Voice Narrator</h3>
+        <p>Select playback speed and listen to verified historical &amp; archaeological stories from Odisha.</p>
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:6px;">
+          <label style="margin:0;">Speed:
+            <select id="voiceRate" style="width:auto; display:inline-block; margin-left:6px;">
+              <option value="0.85">0.85x Deep &amp; Measured</option>
+              <option value="1.0" selected>1.0x Natural</option>
+              <option value="1.2">1.2x Brisk</option>
+            </select>
+          </label>
+          <button class="btn btn-outline" onclick="window.speechSynthesis && window.speechSynthesis.cancel()">⏹ Stop Audio</button>
+        </div>
+      </div>
+      <div id="kathaGrid" class="grid"></div>
+    </div>
+
+    <!-- 3. TRIP PLANNER -->
+    <div id="sec-planner" class="section">
+      <div class="card" style="margin-bottom:18px;">
+        <h3>Deterministic Odisha Itinerary &amp; Cost Calculator</h3>
+        <div class="form-row" style="margin-top:10px;">
+          <div>
+            <label>Starting Hub</label>
+            <select id="planHub">
+              <option>Bhubaneswar</option>
+              <option>Puri</option>
+              <option>Sambalpur</option>
+              <option>Koraput</option>
+              <option>Rourkela</option>
+            </select>
+          </div>
+          <div>
+            <label>Primary Circuit</label>
+            <select id="planCircuit">
+              <option value="Golden Triangle (Khordha • Puri • Cuttack)">Golden Triangle (Khordha • Puri • Cuttack)</option>
+              <option value="Southern Ghats (Koraput • Rayagada • Kandhamal)">Southern Ghats (Koraput • Rayagada • Kandhamal)</option>
+              <option value="Similipal &amp; North Coast (Mayurbhanj • Balasore • Bhadrak)">Similipal &amp; North Coast (Mayurbhanj • Balasore • Bhadrak)</option>
+              <option value="Western Heritage (Sambalpur • Bargarh • Subarnapur)">Western Heritage (Sambalpur • Bargarh • Subarnapur)</option>
+            </select>
+          </div>
+          <div>
+            <label>Duration (Days)</label>
+            <input type="number" id="planDays" min="1" max="14" value="3" />
+          </div>
+          <div>
+            <label>Travellers</label>
+            <input type="number" id="planPeople" min="1" max="20" value="2" />
+          </div>
+          <div>
+            <label>Comfort Tier</label>
+            <select id="planTier">
+              <option value="Budget">Budget (OTDC / Hostels &amp; Buses)</option>
+              <option value="Moderate" selected>Moderate (3★ / Panthanivas &amp; AC Cab)</option>
+              <option value="Luxury">Luxury (Heritage Resorts &amp; Private SUV)</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <button class="btn btn-saffron" onclick="generateWebPlan()">✨ Generate Odisha Itinerary</button>
+        </div>
+      </div>
+      <div id="planResult"></div>
+    </div>
+
+    <!-- 4. FAIR FARES & SAFETY -->
+    <div id="sec-fares" class="section">
+      <div class="grid">
+        <div class="card">
+          <span class="card-meta">Reference Transit Calculator</span>
+          <h3>Odisha Auto / Cab Fair-Fare Estimator</h3>
+          <p>Estimate non-binding reference fares before boarding local autos or intercity cabs.</p>
+          <label>Estimated Distance (km)</label>
+          <input type="number" id="fareKm" min="1" max="600" value="12" oninput="calcFare()" />
+          <label style="margin-top:8px;">Vehicle Type</label>
+          <select id="fareMode" onchange="calcFare()">
+            <option value="auto">3-Wheeler Auto Rickshaw</option>
+            <option value="sedan">AC Hatchback / Sedan Cab</option>
+            <option value="suv">6-Seater Tourist SUV</option>
+          </select>
+          <div id="fareOutput" style="margin-top:12px; color:var(--gold); font-weight:700; font-size:1.05rem;"></div>
+        </div>
+
+        <div class="card" style="border-color:var(--crimson);">
+          <span class="card-meta" style="color:#ff8a80;">UtkalSuraksha • Emergency Response</span>
+          <h3>SOS 112 &amp; Live GPS WhatsApp Check-In</h3>
+          <p>Police / Fire / Medical Unified Helpline: <strong>112</strong> • Ambulance: <strong>108</strong> • Tourist Helpline: <strong>1363</strong> • OSDMA Disaster Control: <strong>1070</strong></p>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+            <a class="btn btn-sos" href="tel:112">📞 Dial 112</a>
+            <a class="btn btn-outline" href="tel:108">🚑 Dial 108</a>
+            <button class="btn btn-whatsapp" onclick="shareLiveGpsWhatsApp()">📍 Share GPS on WhatsApp</button>
+          </div>
+          <p id="gpsStatus" style="margin-top:8px; font-size:0.8rem; color:var(--teal);"></p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    UtkalSarathi — Smart Tourism &amp; Safety for All 30 Districts of Odisha • Discover Odisha, Your Way.
+  </footer>
+
+  <script>
+    let currentLang = 'en';
+    const DISTRICTS = [
+      [1,"Angul","ଅନୁଗୁଳ","अंगुल","Angul","Central","Satkosia Gorge, Talcher Palace, Hingula Peetha","Chhena Jhili, Dalma","Terracotta & Bamboo","DHH Angul (108 / 112)"],
+      [2,"Balangir","ବଲାଙ୍ଗୀର","बलांगीर","Balangir","Western","Harishankar, Ranipur-Jharial 64 Yogini","Manda Pitha,Hendua","Bomkai & Sambalpuri Ikat","BBMCH Balangir (112)"],
+      [3,"Balasore","ବାଲେଶ୍ୱର","बालासोर","Balasore","Coastal","Chandipur Vanishing Sea, Panchalingeswar, Kuldiha","Fresh Prawns, Gajaa","Lacquerware & Brass","FM Medical College Balasore"],
+      [4,"Bargarh","ବରଗଡ଼","बरगढ़","Bargarh","Western","Nrusinghanath, Debrigarh Sanctuary, Dhanu Yatra","Ambil,Chakuli","Sambalpuri Bandha Saree","DHH Bargarh (112)"],
+      [5,"Bhadrak","ଭଦ୍ରକ","भद्रक","Bhadrak","Coastal","Aradi Akhandalamani, Dhamra & Bhitarkanika Gateway","Palua Ladoo","Stone & Coir Craft","DHH Bhadrak (112)"],
+      [6,"Boudh","ବୌଦ୍ଧ","बौध","Boudh","Central","Rameswar & Twin Siddheswar Temples, Boudh Buddha","Pakhal, Pitha","Boudh Handloom","DHH Boudh (112)"],
+      [7,"Cuttack","କଟକ","कटक","Cuttack","Coastal","Barabati Fort, Maritime Museum, Ansupa, Dhabaleswar","Dahibara Aloodum","Chandi Tarakasi (Silver Filigree)","SCB Medical College Cuttack"],
+      [8,"Deogarh","ଦେବଗଡ଼","देवगढ़","Deogarh","Western","Pradhanpat Waterfalls, Kailash Palace","Arisa Pitha","Wood & Bamboo Craft","DHH Deogarh (112)"],
+      [9,"Dhenkanal","ଢେଙ୍କାନାଳ","ढेंकानाल","Dhenkanal","Central","Kapilash Temple, Joranda Mahima Gadi, Saptasajya","Bara & Magji Ladoo","Dokra Metal Casting (Sadeibareni)","DHH Dhenkanal (112)"],
+      [10,"Gajapati","ଗଜପତି","गजपति","Paralakhemundi","Southern","Mahendragiri Peaks, Jirang Monastery, Gandahati Falls","Ragi Mandia, Honey","Horn Work & Tibetan Carpets","DHH Paralakhemundi (112)"],
+      [11,"Ganjam","ଗଞ୍ଜାମ","गंजाम","Chhatrapur","Southern","Gopalpur-on-Sea, Tara Tarini, Chilika Rambha, Tampara","Puri Upma, Pickles","Brass Flexible Fish (Bellaguntha)","MKCG Medical College Berhampur"],
+      [12,"Jagatsinghpur","ଜଗତସିଂହପୁର","जगतसिंहपुर","Jagatsinghpur","Coastal","Paradip Port & Beach, Maa Sarala Temple, Siali Beach","Chhena Gaja, Crab Curry","Kauna Grass Mats","DHH Jagatsinghpur (112)"],
+      [13,"Jajpur","ଯାଜପୁର","जाजपुर","Jajpur","Coastal","Ratnagiri-Udayagiri-Lalitgiri Buddhist Diamond Triangle, Biraja","Poda Pitha","Tussar Silk (Gopalpur)","DHH Jajpur (112)"],
+      [14,"Jharsuguda","ଝାରସୁଗୁଡ଼ା","झारसुगुड़ा","Jharsuguda","Western","Koilighughar Waterfall, Vikramkhol Rock Inscriptions","Pakhala &Saag","Tussar Handloom","DHH Jharsuguda (112)"],
+      [15,"Kalahandi","କଳାହାଣ୍ଡି","कालाहांडी","Bhawanipatna","Southern","Phurlijharan & Rabandarh Falls, Asurgarh Fort","Mandia Pej","Habaspuri Handloom (Chicheguda)","SLN / DHH Bhawanipatna"],
+      [16,"Kandhamal","କନ୍ଧମାଳ","कंधमाल","Phulbani","Southern","Daringbadi Pine Forests & Coffee Gardens, Putudi Falls","Kandhamal Haldi Dishes","Kandhamal Haldi (GI) & Dokra","DHH Phulbani (112)"],
+      [17,"Kendrapara","କେନ୍ଦ୍ରାପଡ଼ା","केंद्रापड़ा","Kendrapara","Coastal","Bhitarkanika National Park, Gahirmatha, Baladevjew","Kendrapara Rasabali (GI)","Golden Grass Craft","DHH Kendrapara (112)"],
+      [18,"Kendujhar","କେନ୍ଦୁଝର","केंदुझर","Keonjhar","Northern","Sanaghagara, Badaghagara, Khandadhar, Sitabinjhi Murals","Badiura & Pitha","Paper Mache & Stone Carving","DD Medical College Keonjhar"],
+      [19,"Khordha","ଖୋର୍ଦ୍ଧା","खोर्धा","Khordha (Bhubaneswar)","Coastal","Lingaraj, Mukteswar, Udayagiri-Khandagiri, Dhauli, Nandankanan","Odisha Rasagola (GI), Dalma","Khandua Ikat & Stone Carving","AIIMS Bhubaneswar / Capital Hospital"],
+      [20,"Koraput","କୋରାପୁଟ","कोरापुट","Koraput","Southern","Deomali Peak, Duduma Falls, Gupteswar, Tribal Museum","Kalajeera Rice, Koraput Arabica Coffee","Kotpad Natural-Dye Handloom (GI)","SLN Medical College Koraput"],
+      [21,"Malkangiri","ମାଲକାନଗିରି","मालकानगिरि","Malkangiri","Southern","Satiguda Dam, Balimela Reservoir, Bonda Hills","Bamboo Shoot & Millets","Bonda Beaded Looms","DHH Malkangiri (112)"],
+      [22,"Mayurbhanj","ମୟୂରଭଞ୍ଜ","मयूरभंज","Baripada","Northern","Similipal Tiger Reserve, Belgadia Palace, Khiching","Mudhi Mansa, Kai Chutney (GI)","Sabai Grass & Chhau Masks","PRM Medical College Baripada"],
+      [23,"Nabarangpur","ନବରଙ୍ଗପୁର","नवरंगपुर","Nabarangpur","Southern","Maa Bhandargharani, Podagada, Chandahandi","Maize & Millet Delicacies","Lacquer Craft (GI)","DHH Nabarangpur (112)"],
+      [24,"Nayagarh","ନୟାଗଡ଼","नयागढ़","Nayagarh","Central","Satkosia Badmul Eco-Camp, Odagaon Raghunathjew, Kantilo","Chhena Poda (Birthplace)","Bell Metal (Kantilo)","DHH Nayagarh (112)"],
+      [25,"Nuapada","ନୂଆପଡ଼ା","नुआपड़ा","Nuapada","Western","Patora Dam, Yogeswar Temple, Sunabeda Plateau","Chakuli & Mahua Sweets","Bamboo & Tribal Weaves","DHH Nuapada (112)"],
+      [26,"Puri","ପୁରୀ","पुरी","Puri","Coastal","Shree Jagannath Temple, Konark Sun Temple (UNESCO), Chilika Satapada, Raghurajpur","Abhada Mahaprasad, Khaja (GI)","Pattachitra & Applique (Pipili)","DHH Puri (112)"],
+      [27,"Rayagada","ରାୟଗଡ଼ା","रायगड़ा","Rayagada","Southern","Chatikona Waterfalls, Majhighariani, Chekaguda Hanging Bridge","Mandia & Tamarind Broth","Dongria Kondh Kapdaganda Shawl (GI)","DHH Rayagada (112)"],
+      [28,"Sambalpur","ସମ୍ବଲପୁର","संबलपुर","Sambalpur","Western","Hirakud Dam & Ropeway, Leaning Temple of Huma, Samaleswari","Sarsatia Sweet, Pakhala","Sambalpuri Bandha Ikat (GI)","VIMSAR Burla (112)"],
+      [29,"Subarnapur","ସୁବର୍ଣ୍ଣପୁର","सुबर्णपुर","Sonepur","Western","Lankeswari Gorge, Suvarnameru, Patali Srikhetra","Chhena Sweets","Bomkai (Sonepuri) Silk (GI)","DHH Sonepur (112)"],
+      [30,"Sundargarh","ସୁନ୍ଦରଗଡ଼","सुंदरगढ़","Sundargarh","Northern","Khandadhar Falls, Vedvyas Confluence, Mandira Dam","Arisa & Rugda Mushroom","Tribal Cane & Hockey Heritage","RGH Rourkela / DHH Sundargarh"]
+    ];
+
+    const STORIES = [
+      { title:"Astronomical Sundials of Konark", odia:"କୋଣାର୍କ ରଥଚକ୍ରର ଜ୍ୟୋତିର୍ବିଜ୍ଞାନ", district:"Puri", badge:"Archaeological & Epigraphic Evidence", source:"ASI World Heritage Dossier", body:"Commissioned in the 13th century CE by Eastern Ganga monarch Narasimhadeva I, the twenty-four carved stone wheels of the Konark Sun Chariot double as precision sundials whose major and minor spokes calculate time down to minutes." },
+      { title:"Ashoka's Rock Edicts at Dhauli", odia:"ଧଉଳି ଶିଳାଲେଖ ଓ କଳିଙ୍ଗ ଯୁଦ୍ଧ", district:"Khordha", badge:"Documented Historical Record", source:"Corpus Inscriptionum Indicarum", body:"Carved in 261 BCE beside the Daya River and crowned by Odisha's earliest rock-cut elephant sculpture, the Dhauli Major Rock Edicts record Emperor Ashoka's transformation towardamma and civic welfare." },
+      { title:"Boita Bandana & Kalinga's Maritime Trade", odia:"ବୋଇତ ବନ୍ଦାଣ ଓ କଳିଙ୍ଗର ନୌବାଣିଜ୍ୟ", district:"Cuttack", badge:"Archaeological & Historical Record", source:"Odisha State Maritime Museum", body:"Ancient Sadhabas sailed wooden Boitas from ports such as Tamralipti, Palur, and Manikapatna across the Bay of Bengal to Bali, Java, Sumatra, and Sri Lanka, commemorated every Kartika Purnima." },
+      { title:"Raghurajpur Chitrakaras & GI Pattachitra", odia:"ରଘୁରାଜପୁର ପଟ୍ଟଚିତ୍ର ପରମ୍ପରା", district:"Puri", badge:"Documented Cultural Heritage", source:"Geographical Indications Registry", body:"Every household in Raghurajpur prepares tamarind-seed-coated cotton canvas (Pata) painted exclusively with conch-shell white, lampblack, hingula red, and haritala yellow stone pigments." }
+    ];
+
+    function setLang(lang, btn) {
+      currentLang = lang;
+      document.querySelectorAll('.lang-chip').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      document.getElementById('heroTitle').textContent =
+        lang === 'or' ? 'ଓଡ଼ିଶାର ୩୦ଟି ଜିଲ୍ଲା • ଐତିହ୍ୟ, AI ଓ ସୁରକ୍ଷା' :
+        lang === 'hi' ? 'ओडिशा के सभी 30 जिले • विरासत, यात्रा और सुरक्षा' :
+        'Sacred Temples, Misty Ghats & Maritime Heritage';
+      renderDistricts();
+      renderStories();
+    }
+
+    function switchTab(id) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('sec-' + id).classList.add('active');
+      document.getElementById('tab-' + id).classList.add('active');
+    }
+
+    function renderDistricts() {
+      const q = (document.getElementById('districtSearch').value || '').toLowerCase().trim();
+      const filtered = DISTRICTS.filter(d => d.join(' ').toLowerCase().includes(q));
+      document.getElementById('districtCount').textContent = `Showing ${filtered.length} of 30 Official Districts of Odisha`;
+      document.getElementById('districtGrid').innerHTML = filtered.map(d => {
+        const displayTitle = currentLang === 'or' ? `${d[2]} (${d[1]})` : currentLang === 'hi' ? `${d[3]} (${d[1]})` : `${d[1]} • ${d[2]}`;
+        return `
+          <article class="card">
+            <span class="card-meta">District #${d[0]} • ${d[5]} Odisha • HQ: ${d[4]}</span>
+            <h3>${displayTitle}</h3>
+            <p><strong>Highlights:</strong> ${d[6]}</p>
+            <div class="pill-row">
+              <span class="pill">🍛 ${d[7]}</span>
+              <span class="pill">🎨 ${d[8]}</span>
+            </div>
+            <p style="font-size:0.78rem; color:var(--gold); margin-top:4px;">🏥 ${d[9]}</p>
+            <div style="margin-top:auto; padding-top:8px;">
+              <button class="btn btn-whatsapp" style="padding:7px 12px; font-size:0.78rem;" onclick="shareDistrict(${d[0]-1})">Share on WhatsApp</button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderStories() {
+      document.getElementById('kathaGrid').innerHTML = STORIES.map((s, idx) => `
+        <article class="card">
+          <span class="card-meta">${s.district} District • ${s.badge}</span>
+          <h3>${currentLang === 'or' ? s.odia : s.title}</h3>
+          <div class="card-odia">${s.odia}</div>
+          <p>${s.body}</p>
+          <p style="font-size:0.75rem; color:var(--gold);">Source: ${s.source}</p>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="btn btn-saffron" onclick="speakStory(${idx})">🔊 Listen</button>
+            <button class="btn btn-whatsapp" onclick="shareTextWhatsApp('📜 *Utkal Katha: ' + STORIES[${idx}].title + '*\\n' + STORIES[${idx}].body)">WhatsApp</button>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function speakStory(idx) {
+      if (!('speechSynthesis' in window)) return alert('Speech synthesis is not supported in this browser.');
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(STORIES[idx].title + '. ' + STORIES[idx].body);
+      u.rate = parseFloat(document.getElementById('voiceRate').value || '1.0');
+      u.lang = 'en-IN';
+      window.speechSynthesis.speak(u);
+    }
+
+    let latestPlanShareText = '';
+    function generateWebPlan() {
+      const hub = document.getElementById('planHub').value;
+      const circuit = document.getElementById('planCircuit').value;
+      const days = Math.max(1, Math.min(14, parseInt(document.getElementById('planDays').value || '3', 10)));
+      const people = Math.max(1, Math.min(20, parseInt(document.getElementById('planPeople').value || '2', 10)));
+      const tier = document.getElementById('planTier').value;
+      const perPersonDay = tier === 'Budget' ? 1650 : tier === 'Luxury' ? 6800 : 3200;
+      const cabDay = tier === 'Budget' ? 900 : tier === 'Luxury' ? 4200 : 2600;
+      const dayTotal = (perPersonDay * people) + cabDay;
+      const grandTotal = dayTotal * days;
+
+      let rows = '';
+      let waLines = [`🗺️ *UtkalSarathi Odisha Itinerary: ${circuit} (${days}D)*`, `🚉 Start: ${hub} | 👥 ${people} Traveller(s) | Tier: ${tier}`, `💰 *Total Estimated Cost:* ₹${grandTotal.toLocaleString('en-IN')}`, ''];
+      for (let i = 1; i <= days; i++) {
+        rows += `<div class="pill" style="display:block; padding:10px 12px; margin-bottom:8px;">
+          <strong style="color:var(--gold);">Day ${i}:</strong> Explore ${circuit} sector ${i} from ${hub} • Stay &amp; Local Odia Cuisine • Est: ₹${dayTotal.toLocaleString('en-IN')}
+        </div>`;
+        waLines.push(`• Day ${i}: ${circuit} (Sector ${i}) — Est ₹${dayTotal.toLocaleString('en-IN')}`);
+      }
+      waLines.push('', '✨ Shared via UtkalSarathi — Discover Odisha, Your Way.');
+      latestPlanShareText = waLines.join('\n');
+
+      document.getElementById('planResult').innerHTML = `
+        <div class="card" style="border-color:var(--gold);">
+          <span class="card-meta">Generated Itinerary</span>
+          <h3>${circuit} — ${days} Day(s)</h3>
+          <p style="color:var(--saffron); font-size:1.25rem; font-weight:700;">Estimated Total Budget: ₹${grandTotal.toLocaleString('en-IN')}</p>
+          <p style="font-size:0.78rem;">Includes estimated ${tier.toLowerCase()} accommodation, meals &amp; ground transport for ${people} traveller(s); excludes flights/long-distance rail.</p>
+          <div style="margin-top:8px;">${rows}</div>
+          <button class="btn btn-whatsapp" onclick="shareTextWhatsApp(latestPlanShareText)">💬 Share Itinerary on WhatsApp</button>
+        </div>
+      `;
+    }
+
+    function calcFare() {
+      const km = Math.max(1, parseFloat(document.getElementById('fareKm').value || '10'));
+      const mode = document.getElementById('fareMode').value;
+      const base = mode === 'auto' ? 35 : mode === 'sedan' ? 120 : 220;
+      const perKm = mode === 'auto' ? 16 : mode === 'sedan' ? 22 : 30;
+      const low = Math.round(base + km * perKm * 0.9);
+      const high = Math.round(base + km * perKm * 1.15);
+      document.getElementById('fareOutput').textContent = `Reference Fair Range (${km} km): ₹${low} – ₹${high} (confirm before boarding)`;
+    }
+
+    function shareTextWhatsApp(text) {
+      const url = window.location.href.startsWith('http') ? `\n🔗 ${window.location.href}` : '';
+      window.open('https://wa.me/?text=' + encodeURIComponent(text + url), '_blank', 'noopener');
+    }
+
+    function shareAppWhatsApp() {
+      shareTextWhatsApp('✨ *UtkalSarathi — Smart Tourism & Safety for Odisha*\nExplore all 30 Odisha districts, Utkal Katha stories, deterministic trip budgets & SOS 112 safety!');
+    }
+
+    function shareDistrict(idx) {
+      const d = DISTRICTS[idx];
+      shareTextWhatsApp(`🏛️ *${d[1]} (${d[2]}) — Odisha District #${d[0]}*\nHQ: ${d[4]} | Highlights: ${d[6]}\nCuisine: ${d[7]} | Crafts: ${d[8]}`);
+    }
+
+    function shareLiveGpsWhatsApp() {
+      const el = document.getElementById('gpsStatus');
+      if (!navigator.geolocation) {
+        shareTextWhatsApp('🛡️ *UtkalSarathi Safety Check-in*: Travelling in Odisha (Emergency Helpline: 112)');
+        return;
+      }
+      el.textContent = 'Requesting browser GPS fix…';
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          const lat = pos.coords.latitude.toFixed(5);
+          const lon = pos.coords.longitude.toFixed(5);
+          el.textContent = `GPS Fixed: ${lat}, ${lon}`;
+          shareTextWhatsApp(`🛡️ *UtkalSarathi Safety Check-in*\nMy live Odisha location: https://maps.google.com/?q=${lat},${lon}\nEmergency Helpline: 112`);
+        },
+        () => {
+          el.textContent = 'GPS permission declined — opening general WhatsApp safety check-in.';
+          shareTextWhatsApp('🛡️ *UtkalSarathi Safety Check-in*: Travelling in Odisha (Emergency Helpline: 112)');
+        }
+      );
+    }
+
+    renderDistricts();
+    renderStories();
+    calcFare();
+    generateWebPlan();
+  </script>
+</body>
+</html>

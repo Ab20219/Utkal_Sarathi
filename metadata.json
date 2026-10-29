@@ -1,0 +1,6 @@
+{
+  "name": "UtkalSarathi",
+  "description": "AI-powered smart tourism, cultural heritage storytelling, trip planning, and traveller safety companion across all 30 districts of Odisha.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

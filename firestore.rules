@@ -1,0 +1,246 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Pillar 1: Global Default-Deny Catch-All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string
+        && id.size() >= 1
+        && id.size() <= 128
+        && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isValidTimestampPastOrNow(ts) {
+      return ts is timestamp && ts <= request.time;
+    }
+
+    // Entity 1: UserProfile (/users/{userId})
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll([
+          'userId', 'displayName', 'languageCode', 'preferredVoice',
+          'speechSpeed', 'hasCompletedOnboarding', 'favoriteDestinationIds',
+          'offlineDistrictIds', 'recentSearches', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'userId', 'displayName', 'languageCode', 'preferredVoice',
+          'speechSpeed', 'hasCompletedOnboarding', 'favoriteDestinationIds',
+          'offlineDistrictIds', 'recentSearches', 'createdAt', 'updatedAt'
+        ])
+        && data.userId == userId
+        && isValidString(data.displayName, 1, 120)
+        && data.languageCode in ['en', 'or', 'hi']
+        && data.preferredVoice in ['Charon', 'Orus', 'Kore']
+        && data.speechSpeed is number && data.speechSpeed >= 0.75 && data.speechSpeed <= 1.5
+        && data.hasCompletedOnboarding is bool
+        && data.favoriteDestinationIds is list && data.favoriteDestinationIds.size() <= 100
+        && data.offlineDistrictIds is list && data.offlineDistrictIds.size() <= 30
+        && data.recentSearches is list && data.recentSearches.size() <= 10
+        && isValidTimestampPastOrNow(data.createdAt)
+        && isValidTimestampPastOrNow(data.updatedAt);
+    }
+
+    // Entity 2: SavedTrip (/users/{userId}/trips/{tripId})
+    function isValidSavedTrip(data, userId) {
+      return data.keys().hasAll([
+          'userId', 'title', 'startingCity', 'selectedDistrictIds',
+          'durationDays', 'travelDatesLabel', 'travellerCount', 'tierPreference',
+          'interests', 'totalEstimatedCostInr', 'costAssumptionsNote',
+          'daySlots', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'userId', 'title', 'startingCity', 'selectedDistrictIds',
+          'durationDays', 'travelDatesLabel', 'travellerCount', 'tierPreference',
+          'interests', 'totalEstimatedCostInr', 'costAssumptionsNote',
+          'daySlots', 'createdAt', 'updatedAt'
+        ])
+        && data.userId == userId
+        && isValidString(data.title, 1, 200)
+        && isValidString(data.startingCity, 1, 100)
+        && data.selectedDistrictIds is list && data.selectedDistrictIds.size() >= 1 && data.selectedDistrictIds.size() <= 30
+        && data.durationDays is int && data.durationDays >= 1 && data.durationDays <= 14
+        && isValidString(data.travelDatesLabel, 1, 120)
+        && data.travellerCount is int && data.travellerCount >= 1 && data.travellerCount <= 50
+        && data.tierPreference in ['Budget', 'Moderate', 'Luxury']
+        && data.interests is list && data.interests.size() <= 20
+        && data.totalEstimatedCostInr is int && data.totalEstimatedCostInr >= 0 && data.totalEstimatedCostInr <= 10000000
+        && isValidString(data.costAssumptionsNote, 1, 1000)
+        && data.daySlots is list && data.daySlots.size() >= 1 && data.daySlots.size() <= 14
+        && isValidTimestampPastOrNow(data.createdAt)
+        && isValidTimestampPastOrNow(data.updatedAt);
+    }
+
+    // Entity 3: TrustedContact (/users/{userId}/trusted_contacts/{contactId})
+    function isValidTrustedContact(data, userId) {
+      return data.keys().hasAll(['userId', 'name', 'relation', 'phoneNumber', 'createdAt'])
+        && data.keys().hasOnly(['userId', 'name', 'relation', 'phoneNumber', 'createdAt'])
+        && data.userId == userId
+        && isValidString(data.name, 1, 100)
+        && isValidString(data.relation, 1, 60)
+        && isValidString(data.phoneNumber, 3, 25)
+        && isValidTimestampPastOrNow(data.createdAt);
+    }
+
+    // Entity 4: UserStory (/users/{userId}/user_stories/{storyId})
+    function isValidUserStory(data, userId) {
+      return data.keys().hasAll([
+          'userId', 'titleEn', 'titleOdia', 'titleHindi', 'districtId',
+          'destinationId', 'destinationName', 'category', 'historicalPeriod',
+          'factClassification', 'bodyEn', 'bodyOdia', 'bodyHindi',
+          'sourceReferences', 'editorialStatus', 'isAiGenerated',
+          'isFavorite', 'isOfflineSaved', 'contentHash', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'userId', 'titleEn', 'titleOdia', 'titleHindi', 'districtId',
+          'destinationId', 'destinationName', 'category', 'historicalPeriod',
+          'factClassification', 'bodyEn', 'bodyOdia', 'bodyHindi',
+          'sourceReferences', 'editorialStatus', 'isAiGenerated',
+          'isFavorite', 'isOfflineSaved', 'contentHash', 'createdAt', 'updatedAt'
+        ])
+        && data.userId == userId
+        && isValidString(data.titleEn, 1, 240)
+        && isValidString(data.titleOdia, 0, 240)
+        && isValidString(data.titleHindi, 0, 240)
+        && isValidString(data.districtId, 1, 60)
+        && isValidString(data.destinationId, 1, 100)
+        && isValidString(data.destinationName, 1, 160)
+        && isValidString(data.category, 1, 80)
+        && isValidString(data.historicalPeriod, 1, 120)
+        && isValidString(data.factClassification, 1, 120)
+        && isValidString(data.bodyEn, 10, 8000)
+        && isValidString(data.bodyOdia, 0, 8000)
+        && isValidString(data.bodyHindi, 0, 8000)
+        && isValidString(data.sourceReferences, 1, 600)
+        && isValidString(data.editorialStatus, 1, 120)
+        && data.isAiGenerated is bool
+        && data.isFavorite is bool
+        && data.isOfflineSaved is bool
+        && isValidString(data.contentHash, 8, 128)
+        && isValidTimestampPastOrNow(data.createdAt)
+        && isValidTimestampPastOrNow(data.updatedAt);
+    }
+
+    // Entity 5: SafetyReport (/users/{userId}/safety_reports/{reportId})
+    function isValidSafetyReport(data, userId) {
+      return data.keys().hasAll([
+          'userId', 'reportType', 'districtId', 'targetLabel',
+          'category', 'description', 'severity', 'verificationStatus', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'userId', 'reportType', 'districtId', 'targetLabel',
+          'category', 'description', 'severity', 'verificationStatus', 'createdAt'
+        ])
+        && data.userId == userId
+        && data.reportType in ['HAZARD', 'LISTING_ISSUE']
+        && isValidString(data.districtId, 1, 60)
+        && isValidString(data.targetLabel, 1, 200)
+        && isValidString(data.category, 1, 80)
+        && isValidString(data.description, 5, 1500)
+        && data.severity in ['Advisory', 'Caution', 'Urgent', 'Editorial']
+        && data.verificationStatus == 'User Submitted — Unverified (Pending Moderation)'
+        && isValidTimestampPastOrNow(data.createdAt);
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && isValidId(userId)
+        && isValidUserProfile(request.resource.data, userId);
+      allow update: if isOwner(userId)
+        && resource != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'displayName', 'languageCode', 'preferredVoice', 'speechSpeed',
+          'hasCompletedOnboarding', 'favoriteDestinationIds',
+          'offlineDistrictIds', 'recentSearches', 'updatedAt'
+        ])
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && isValidUserProfile(request.resource.data, userId);
+      allow delete: if isOwner(userId);
+
+      match /trips/{tripId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && isValidId(tripId)
+          && isValidSavedTrip(request.resource.data, userId);
+        allow update: if isOwner(userId)
+          && resource != null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'title', 'startingCity', 'selectedDistrictIds', 'durationDays',
+            'travelDatesLabel', 'travellerCount', 'tierPreference',
+            'interests', 'totalEstimatedCostInr', 'costAssumptionsNote',
+            'daySlots', 'updatedAt'
+          ])
+          && request.resource.data.userId == resource.data.userId
+          && request.resource.data.createdAt == resource.data.createdAt
+          && isValidSavedTrip(request.resource.data, userId);
+        allow delete: if isOwner(userId);
+      }
+
+      match /trusted_contacts/{contactId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && isValidId(contactId)
+          && isValidTrustedContact(request.resource.data, userId);
+        allow update: if isOwner(userId)
+          && resource != null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'name', 'relation', 'phoneNumber'
+          ])
+          && request.resource.data.userId == resource.data.userId
+          && request.resource.data.createdAt == resource.data.createdAt
+          && isValidTrustedContact(request.resource.data, userId);
+        allow delete: if isOwner(userId);
+      }
+
+      match /user_stories/{storyId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && isValidId(storyId)
+          && isValidUserStory(request.resource.data, userId);
+        allow update: if isOwner(userId)
+          && resource != null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'titleOdia', 'titleHindi', 'bodyOdia', 'bodyHindi',
+            'editorialStatus', 'isFavorite', 'isOfflineSaved', 'updatedAt'
+          ])
+          && request.resource.data.userId == resource.data.userId
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.contentHash == resource.data.contentHash
+          && isValidUserStory(request.resource.data, userId);
+        allow delete: if isOwner(userId);
+      }
+
+      match /safety_reports/{reportId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && isValidId(reportId)
+          && isValidSafetyReport(request.resource.data, userId);
+        allow update: if false;
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

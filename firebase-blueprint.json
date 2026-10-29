@@ -1,0 +1,185 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated traveller profile, language, deep-voice preferences, favourites, and pinned offline district packs.",
+      "type": "object",
+      "required": [
+        "userId",
+        "displayName",
+        "languageCode",
+        "preferredVoice",
+        "speechSpeed",
+        "hasCompletedOnboarding",
+        "favoriteDestinationIds",
+        "offlineDistrictIds",
+        "recentSearches",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "languageCode": { "type": "string", "enum": ["en", "or", "hi"] },
+        "preferredVoice": { "type": "string", "enum": ["Charon", "Orus", "Kore"] },
+        "speechSpeed": { "type": "number", "minimum": 0.75, "maximum": 1.5 },
+        "hasCompletedOnboarding": { "type": "boolean" },
+        "favoriteDestinationIds": { "type": "array", "maxItems": 100, "items": { "type": "string" } },
+        "offlineDistrictIds": { "type": "array", "maxItems": 30, "items": { "type": "string" } },
+        "recentSearches": { "type": "array", "maxItems": 10, "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "SavedTrip": {
+      "title": "SavedTrip",
+      "description": "Personalized day-by-day Odisha itinerary with native daySlots list and transparent INR cost breakdown.",
+      "type": "object",
+      "required": [
+        "userId",
+        "title",
+        "startingCity",
+        "selectedDistrictIds",
+        "durationDays",
+        "travelDatesLabel",
+        "travellerCount",
+        "tierPreference",
+        "interests",
+        "totalEstimatedCostInr",
+        "costAssumptionsNote",
+        "daySlots",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "startingCity": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "selectedDistrictIds": { "type": "array", "minItems": 1, "maxItems": 30, "items": { "type": "string" } },
+        "durationDays": { "type": "integer", "minimum": 1, "maximum": 14 },
+        "travelDatesLabel": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "travellerCount": { "type": "integer", "minimum": 1, "maximum": 50 },
+        "tierPreference": { "type": "string", "enum": ["Budget", "Moderate", "Luxury"] },
+        "interests": { "type": "array", "maxItems": 20, "items": { "type": "string" } },
+        "totalEstimatedCostInr": { "type": "integer", "minimum": 0, "maximum": 10000000 },
+        "costAssumptionsNote": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "daySlots": { "type": "array", "minItems": 1, "maxItems": 14, "items": { "type": "object" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "TrustedContact": {
+      "title": "TrustedContact",
+      "description": "Private emergency trusted contact isolated under the owner user document.",
+      "type": "object",
+      "required": ["userId", "name", "relation", "phoneNumber", "createdAt"],
+      "properties": {
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "relation": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "phoneNumber": { "type": "string", "minLength": 3, "maxLength": 25 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "UserStory": {
+      "title": "UserStory",
+      "description": "Cloud-synced Utkal Katha story record (AI source-grounded, batch imported, or bookmarked) with canonical multilingual fields.",
+      "type": "object",
+      "required": [
+        "userId",
+        "titleEn",
+        "titleOdia",
+        "titleHindi",
+        "districtId",
+        "destinationId",
+        "destinationName",
+        "category",
+        "historicalPeriod",
+        "factClassification",
+        "bodyEn",
+        "bodyOdia",
+        "bodyHindi",
+        "sourceReferences",
+        "editorialStatus",
+        "isAiGenerated",
+        "isFavorite",
+        "isOfflineSaved",
+        "contentHash",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "titleEn": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "titleOdia": { "type": "string", "maxLength": 240 },
+        "titleHindi": { "type": "string", "maxLength": 240 },
+        "districtId": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "destinationId": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "destinationName": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "category": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "historicalPeriod": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "factClassification": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "bodyEn": { "type": "string", "minLength": 10, "maxLength": 8000 },
+        "bodyOdia": { "type": "string", "maxLength": 8000 },
+        "bodyHindi": { "type": "string", "maxLength": 8000 },
+        "sourceReferences": { "type": "string", "minLength": 1, "maxLength": 600 },
+        "editorialStatus": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "isAiGenerated": { "type": "boolean" },
+        "isFavorite": { "type": "boolean" },
+        "isOfflineSaved": { "type": "boolean" },
+        "contentHash": { "type": "string", "minLength": 8, "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "SafetyReport": {
+      "title": "SafetyReport",
+      "description": "User-submitted travel hazard or cultural listing update locked to Pending Moderation status.",
+      "type": "object",
+      "required": [
+        "userId",
+        "reportType",
+        "districtId",
+        "targetLabel",
+        "category",
+        "description",
+        "severity",
+        "verificationStatus",
+        "createdAt"
+      ],
+      "properties": {
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "reportType": { "type": "string", "enum": ["HAZARD", "LISTING_ISSUE"] },
+        "districtId": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "targetLabel": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "category": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "description": { "type": "string", "minLength": 5, "maxLength": 1500 },
+        "severity": { "type": "string", "enum": ["Advisory", "Caution", "Urgent", "Editorial"] },
+        "verificationStatus": { "type": "string", "enum": ["User Submitted — Unverified (Pending Moderation)"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Owner-only traveller profile and synced preferences."
+    },
+    "/users/{userId}/trips/{tripId}": {
+      "schema": { "$ref": "#/entities/SavedTrip" },
+      "description": "Owner-only saved Odisha itineraries."
+    },
+    "/users/{userId}/trusted_contacts/{contactId}": {
+      "schema": { "$ref": "#/entities/TrustedContact" },
+      "description": "Owner-only private emergency trusted contacts (PII isolated)."
+    },
+    "/users/{userId}/user_stories/{storyId}": {
+      "schema": { "$ref": "#/entities/UserStory" },
+      "description": "Owner-only synced Utkal Katha stories and bookmark metadata."
+    },
+    "/users/{userId}/safety_reports/{reportId}": {
+      "schema": { "$ref": "#/entities/SafetyReport" },
+      "description": "Owner-scoped hazard and listing moderation submissions."
+    }
+  }
+}

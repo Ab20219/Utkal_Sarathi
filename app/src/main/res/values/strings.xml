@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">UtkalSarathi</string>
+    <string name="app_tagline">Discover Odisha, Your Way.</string>
+    <string name="sos_label">SOS 112</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_explore">Explore</string>
+    <string name="nav_trips">My Trips</string>
+    <string name="nav_safety">Safety</string>
+    <string name="nav_profile">Profile</string>
+    <string name="search_districts_hint">Search 30 districts, temples, waterfalls, crafts…</string>
+    <string name="mitra_title">Utkal Mitra AI</string>
+    <string name="katha_title">Utkal Katha</string>
+    <string name="suraksha_title">UtkalSuraksha</string>
+    <string name="planner_title">Personalized Trip Planner</string>
+    <string name="geomap_title">Odisha Geo-Map &amp; Fair Fares</string>
+    <string name="cuisine_title">Cuisine, Artisans &amp; GI Crafts</string>
+    <string name="offline_pack_title">Offline Travel Pack</string>
+    <string name="content_desc_logo">UtkalSarathi Konark Wheel and Compass Emblem</string>
+    <string name="content_desc_sos">Emergency SOS 112 Dialer</string>
+    <string name="content_desc_language">Select Language: English, Odia, or Hindi</string>
+    <string name="content_desc_back">Navigate back</string>
+    <string name="sign_in_google_cta">Sign in with Google</string>
+    <string name="sign_out_cta">Sign Out</string>
+    <string name="cloud_sync_badge">Firebase AI Logic + Cloud Firestore Synced</string>
+    <string name="share_whatsapp_cta">Share on WhatsApp</string>
+    <string name="share_more_apps_cta">More Apps / Copy</string>
+    <string name="share_app_short">WhatsApp Share</string>
+    <string name="content_desc_share_whatsapp">Share on WhatsApp</string>
+</resources>
+
