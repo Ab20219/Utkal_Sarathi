@@ -17,6 +17,38 @@ export interface BrowserVoiceSelection {
 }
 
 /**
+ * Ensures browser speech synthesis voices are populated on mobile devices (Android WebView / Chrome)
+ * where window.speechSynthesis.getVoices() returns [] on initial page load.
+ */
+export function ensureBrowserVoicesReady(timeoutMs = 1200): Promise<SpeechSynthesisVoice[]> {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    return Promise.resolve([]);
+  }
+  const existing = window.speechSynthesis.getVoices();
+  if (existing.length > 0) {
+    return Promise.resolve(existing);
+  }
+  return new Promise((resolve) => {
+    let resolved = false;
+    const timer = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        resolve(window.speechSynthesis.getVoices());
+      }
+    }, timeoutMs);
+
+    const onVoices = () => {
+      if (!resolved) {
+        resolved = true;
+        clearTimeout(timer);
+        resolve(window.speechSynthesis.getVoices());
+      }
+    };
+    window.speechSynthesis.onvoiceschanged = onVoices;
+  });
+}
+
+/**
  * Converts Odia script (U+0B00–U+0B7F) into phonetic Devanagari (U+0900–U+097F)
  * leveraging the parallel Brahmic Unicode layout with Odia-specific phonetic adjustments.
  */

@@ -3,6 +3,7 @@ import { Capacitor } from '@capacitor/core';
 declare const __UTKALSARATHI_BACKEND_ORIGIN__: string | undefined;
 
 const FALLBACK_CLOUD_ORIGINS = [
+  'https://utkalsarathi.vercel.app',
   'https://ais-pre-a7pwyloaohkzv3vmswlqbs-776144599923.asia-northeast1.run.app',
   'https://ais-dev-a7pwyloaohkzv3vmswlqbs-776144599923.asia-northeast1.run.app',
 ];

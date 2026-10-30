@@ -1,14 +1,18 @@
 import { fetchApi } from '../utils/apiConfig';
 import {
   selectBestBrowserVoiceAndText,
+  ensureBrowserVoicesReady,
   type BrowserVoiceSelection,
 } from '../utils/indicPhoneticBridge';
+import { getStoryAudioUrl } from '../data/storyAudioMap';
 
 export type SupportedVoiceLang = 'en' | 'or' | 'hi';
 
 export interface PlaySpeechRequest {
   text: string;
   lang: SupportedVoiceLang;
+  storyId?: string;
+  audioUrl?: string;
   persona?: string;
   playbackSpeed?: number;
   allowPhoneticFallback?: boolean;
@@ -20,7 +24,7 @@ export interface PlaySpeechRequest {
 
 export interface PlaySpeechResult {
   success: boolean;
-  engine: 'cloud-tts' | 'browser-speech' | 'none';
+  engine: 'offline-bundled' | 'cloud-tts' | 'browser-speech' | 'none';
   voiceLabel: string;
   notice?: string;
   error?: string;
@@ -190,18 +194,53 @@ class UnifiedVoicePipelineService {
   }
 
   /**
+   * Pauses currently active audio or speech synthesis
+   */
+  public pause(): void {
+    if (this.currentAudio && !this.currentAudio.paused) {
+      try {
+        this.currentAudio.pause();
+      } catch {}
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis.speaking) {
+      try {
+        window.speechSynthesis.pause();
+      } catch {}
+    }
+    this.notify(false);
+  }
+
+  /**
+   * Resumes paused audio playback or speech synthesis
+   */
+  public resume(): void {
+    if (this.currentAudio && this.currentAudio.paused) {
+      try {
+        this.currentAudio.play().catch(() => {});
+        this.notify(true);
+      } catch {}
+    } else if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis.paused) {
+      try {
+        window.speechSynthesis.resume();
+        this.notify(true);
+      } catch {}
+    }
+  }
+
+  /**
    * Unified speech entry point used by all voice features in UtkalSarathi.
+   * Priority order:
+   * 1. High-fidelity bundled studio audio (.wav) if available (100% offline, crystal-clear human voice)
+   * 2. Live neural Gemini TTS from backend (/api/tts)
+   * 3. On-device Indic phonetic speech synthesis with Devanagari mapping and natural pitch 1.0
    */
   public async speak(request: PlaySpeechRequest): Promise<PlaySpeechResult> {
     const {
       text,
       lang,
-      persona = 'utkal-mitra',
       playbackSpeed = 1.0,
-      allowPhoneticFallback = false,
       onStart,
       onEnded,
-      onError,
       onTimeUpdate,
     } = request;
 
@@ -219,7 +258,87 @@ class UnifiedVoicePipelineService {
     // Normal natural playback rate (constrained within sensible bounds 0.8x to 1.3x)
     const normalizedRate = Math.max(0.8, Math.min(1.3, Number(playbackSpeed) || 1.0));
 
-    // 3. Attempt Server TTS (Gemini Neural / High Definition voice)
+    // 3. Priority 1: Check if pre-rendered studio WAV is available
+    const bundledAudioUrl =
+      request.audioUrl || (request.storyId ? getStoryAudioUrl(request.storyId, lang) : null);
+
+    if (bundledAudioUrl) {
+      try {
+        const audio = new Audio(bundledAudioUrl);
+        audio.playbackRate = normalizedRate;
+        this.currentAudio = audio;
+
+        return new Promise<PlaySpeechResult>((resolve) => {
+          let started = false;
+
+          audio.onplay = () => {
+            if (started) return;
+            started = true;
+            this.notify(true);
+            onStart?.();
+          };
+
+          audio.ontimeupdate = () => {
+            if (Number.isFinite(audio.duration) && audio.duration > 0) {
+              onTimeUpdate?.(audio.currentTime, audio.duration);
+            }
+          };
+
+          audio.onended = () => {
+            this.notify(false);
+            this.currentAudio = null;
+            onEnded?.();
+            resolve({
+              success: true,
+              engine: 'offline-bundled',
+              voiceLabel: `Studio Heritage Voice (${lang.toUpperCase()})`,
+            });
+          };
+
+          audio.onerror = () => {
+            this.currentAudio = null;
+            // Fall back to server TTS or device TTS if bundled file fails
+            this.proceedWithServerOrBrowserSpeech(
+              request,
+              normalizedRate,
+              abortController
+            ).then(resolve);
+          };
+
+          audio.play().catch(() => {
+            this.currentAudio = null;
+            this.proceedWithServerOrBrowserSpeech(
+              request,
+              normalizedRate,
+              abortController
+            ).then(resolve);
+          });
+        });
+      } catch {
+        // Fall through
+      }
+    }
+
+    return this.proceedWithServerOrBrowserSpeech(request, normalizedRate, abortController);
+  }
+
+  private async proceedWithServerOrBrowserSpeech(
+    request: PlaySpeechRequest,
+    normalizedRate: number,
+    abortController: AbortController
+  ): Promise<PlaySpeechResult> {
+    const {
+      text,
+      lang,
+      persona = 'utkal-mitra',
+      allowPhoneticFallback = false,
+      onStart,
+      onEnded,
+      onError,
+      onTimeUpdate,
+    } = request;
+
+    // Attempt Server TTS (Gemini Neural / High Definition voice)
     try {
       const response = await fetchApi('/api/tts', {
         method: 'POST',
@@ -337,7 +456,7 @@ class UnifiedVoicePipelineService {
       });
     }
 
-    // 4. Fallback to Browser Speech Synthesis
+    // Fallback to Browser Speech Synthesis
     return this.fallbackBrowserSpeech(
       text,
       lang,
@@ -367,7 +486,7 @@ class UnifiedVoicePipelineService {
       return { success: false, engine: 'none', voiceLabel: 'Unavailable', notice: msg };
     }
 
-    const voices = window.speechSynthesis.getVoices();
+    const voices = await ensureBrowserVoicesReady(1200);
     const selection: BrowserVoiceSelection = selectBestBrowserVoiceAndText(
       text,
       lang,
@@ -391,12 +510,25 @@ class UnifiedVoicePipelineService {
         utterance.pitch = 1.0;
         utterance.rate = rate; // Natural normal reading speed
 
+        let keepAliveTimer: any = null;
+
         utterance.onstart = () => {
           this.notify(true);
           onStart?.();
+
+          // Android WebView Audio Keep-Alive: prevents Chrome from pausing long utterances
+          keepAliveTimer = setInterval(() => {
+            if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+              window.speechSynthesis.pause();
+              window.speechSynthesis.resume();
+            } else {
+              clearInterval(keepAliveTimer);
+            }
+          }, 10000);
         };
 
         utterance.onend = () => {
+          if (keepAliveTimer) clearInterval(keepAliveTimer);
           this.notify(false);
           this.currentUtterance = null;
           onEnded?.();
@@ -408,6 +540,7 @@ class UnifiedVoicePipelineService {
         };
 
         utterance.onerror = (e) => {
+          if (keepAliveTimer) clearInterval(keepAliveTimer);
           this.notify(false);
           this.currentUtterance = null;
           const err = new Error(`Speech synthesis error: ${e.error}`);

@@ -18,6 +18,7 @@ import { DistrictDossierModal } from './components/DistrictDossierModal';
 import { socialService } from './services/socialService';
 import { DistrictInfo } from './data/odishaDistricts';
 import { KathaStory, ALL_KATHA_STORIES } from './data/kathaCatalog';
+import { getStoryAudioUrl } from './data/storyAudioMap';
 import { AppLanguage, t } from './data/i18n';
 import { usePlatform } from './context/PlatformContext';
 import { unifiedVoicePipeline } from './services/unifiedVoicePipeline';
@@ -157,10 +158,13 @@ export default function App() {
       const title = language === 'or' ? story.titleOdia : language === 'hi' ? story.titleHindi : story.titleEn;
       const body = language === 'or' ? story.bodyOdia : language === 'hi' ? story.bodyHindi : story.bodyEn;
       const fullText = `${title}. ${body}`;
+      const bundledUrl = getStoryAudioUrl(story.id || story.districtId, language);
 
       unifiedVoicePipeline.speak({
         text: fullText,
         lang: language,
+        storyId: story.id,
+        audioUrl: bundledUrl || undefined,
         playbackSpeed: audioSpeed,
         onStart: () => {
           setIsAudioPlaying(true);
@@ -182,15 +186,11 @@ export default function App() {
 
   const handleTogglePlayPause = useCallback(() => {
     if (isAudioPaused) {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.resume();
-      }
+      unifiedVoicePipeline.resume();
       setIsAudioPaused(false);
       setIsAudioPlaying(true);
     } else {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.pause();
-      }
+      unifiedVoicePipeline.pause();
       setIsAudioPaused(true);
       setIsAudioPlaying(false);
     }

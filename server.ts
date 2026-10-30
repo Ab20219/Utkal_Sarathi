@@ -35,7 +35,7 @@ app.use((req: Request, res: Response, next) => {
   const origin = req.headers.origin;
   if (
     origin &&
-    (ALLOWED_CORS_ORIGINS.has(origin) || origin.endsWith('.run.app'))
+    (ALLOWED_CORS_ORIGINS.has(origin) || origin.endsWith('.run.app') || origin.endsWith('.vercel.app'))
   ) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
@@ -1988,4 +1988,9 @@ Historical Grounding for ${monumentStory.monument}:
   process.on('SIGINT', shutdown);
 }
 
-startServer();
+export { app };
+export default app;
+
+if (!process.env.VERCEL) {
+  startServer();
+}

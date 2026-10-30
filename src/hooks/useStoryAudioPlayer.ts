@@ -9,6 +9,7 @@ import {
 } from '../utils/storyAudioTiming';
 import { selectBestBrowserVoiceAndText } from '../utils/indicPhoneticBridge';
 import { getMonumentVoiceProfile } from '../data/monumentVoiceProfiles';
+import { getStoryAudioUrl } from '../data/storyAudioMap';
 import { fetchApi } from '../utils/apiConfig';
 import {
   wrapPcm16InWavHeader,
@@ -183,13 +184,13 @@ export function useStoryAudioPlayer({
   const tryBundledOfflineClip = useCallback(
     async (segmentIdx: number, signal: AbortSignal): Promise<PreloadedClip | null> => {
       if (segmentIdx !== 0) return null;
-      const localUrl = `/offline-audio/${storyId}-${lang}-seg0.wav`;
+      const localUrl = getStoryAudioUrl(storyId, lang) || `/offline-audio/${storyId}-${lang}-seg0.wav`;
       try {
         const res = await fetch(localUrl, { method: 'GET', signal });
         if (res.ok) {
           return {
             dataUri: localUrl,
-            voiceName: `${monumentProfile.geminiVoiceName} (Utkal Offline Voice)`,
+            voiceName: `${monumentProfile.geminiVoiceName} (Utkal Studio Voice)`,
             narrator: monumentProfile.narratorName[lang],
           };
         }
@@ -211,8 +212,8 @@ export function useStoryAudioPlayer({
       abortControllersRef.current.add(controller);
 
       const reqPromise = (async (): Promise<PreloadedClip> => {
-        const isDeviceOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
-        if (isDeviceOffline && segmentIdx === 0) {
+        // Always check for authentic bundled studio audio clip first (zero latency, studio quality)
+        if (segmentIdx === 0) {
           const bundled = await tryBundledOfflineClip(segmentIdx, controller.signal);
           if (bundled) {
             abortControllersRef.current.delete(controller);

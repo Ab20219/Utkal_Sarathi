@@ -19,11 +19,22 @@
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
+    },
+    {
+      "source": "/offline-audio/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
+        { "key": "Access-Control-Allow-Origin", "*" }
+      ]
     }
   ],
   "rewrites": [
     {
-      "source": "/((?!assets/|soundscapes/|images/|downloads/|api/|manifest\\.webmanifest|favicon\\.svg).*)",
+      "source": "/api/(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/((?!assets/|soundscapes/|images/|offline-audio/|downloads/|api/|manifest\\.webmanifest|favicon\\.svg).*)",
       "destination": "/index.html"
     }
   ]
