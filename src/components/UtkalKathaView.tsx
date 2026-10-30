@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { ALL_KATHA_STORIES, KathaStory } from '../data/kathaCatalog';
 import { AppLanguage, t } from '../data/i18n';
-import { Volume2, Square, Bookmark, BookmarkCheck, Share2, Sparkles, Filter } from 'lucide-react';
+import { Volume2, Square, Bookmark, BookmarkCheck, Share2, Sparkles, Filter, BookOpen } from 'lucide-react';
 
 interface UtkalKathaViewProps {
   language: AppLanguage;
@@ -9,6 +9,7 @@ interface UtkalKathaViewProps {
   onPlayStory: (story: KathaStory) => void;
   onStopStory: () => void;
   onShareStory: (story: KathaStory) => void;
+  onOpenReader?: (storyId: string) => void;
 }
 
 export const UtkalKathaView: React.FC<UtkalKathaViewProps> = ({
@@ -17,6 +18,7 @@ export const UtkalKathaView: React.FC<UtkalKathaViewProps> = ({
   onPlayStory,
   onStopStory,
   onShareStory,
+  onOpenReader,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [savedStoryIds, setSavedStoryIds] = useState<Set<string>>(() => {
@@ -165,7 +167,20 @@ export const UtkalKathaView: React.FC<UtkalKathaViewProps> = ({
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-2 pt-4 mt-3 border-t border-[#2a3140]/60">
+              <div className="flex flex-wrap items-center gap-2 pt-4 mt-3 border-t border-[#2a3140]/60">
+                {/* Read Chapters & Vocabulary Button */}
+                {onOpenReader && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenReader(story.id)}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold bg-[#1b2029] hover:bg-[#252c38] text-[#e5b85b] border border-[#e5b85b]/40 shadow transition-all active:scale-95"
+                    title="Read 20 chapters & trilingual glossary"
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>Read Chapters</span>
+                  </button>
+                )}
+
                 {/* Play / Stop Button */}
                 <button
                   type="button"

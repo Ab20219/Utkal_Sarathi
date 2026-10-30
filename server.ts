@@ -6,6 +6,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import { utkalKathaV2Router } from './src/server/utkalKathaV2Router';
 
 dotenv.config();
 
@@ -281,6 +282,11 @@ app.get('/api/historic-corpus-stats', (_req: Request, res: Response) => {
     supportedVoiceLanguages: ['en', 'or', 'hi'],
   });
 });
+
+// =========================================================================
+// UTKAL KATHA V2 DEDICATED INDEPENDENT HERITAGE BACKEND MODULE
+// =========================================================================
+app.use('/api/v2/utkal-katha', utkalKathaV2Router);
 
 // =========================================================================
 // UTKAL KATHA SCALABLE STORY LIBRARY ENDPOINTS (10,000+ CAPACITY PLATFORM)

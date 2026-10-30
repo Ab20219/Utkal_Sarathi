@@ -15,6 +15,7 @@ import { OfflineModal } from './components/OfflineModal';
 import { ShareAppModal } from './components/ShareAppModal';
 import { UtkalSanghaModal } from './components/UtkalSanghaModal';
 import { DistrictDossierModal } from './components/DistrictDossierModal';
+import { UtkalKathaReaderModal } from './components/UtkalKathaReaderModal';
 import { socialService } from './services/socialService';
 import { DistrictInfo } from './data/odishaDistricts';
 import { KathaStory, ALL_KATHA_STORIES } from './data/kathaCatalog';
@@ -53,6 +54,8 @@ export default function App() {
   const [isFriendsOpen, setIsFriendsOpen] = useState<boolean>(false);
   const [selectedDistrict, setSelectedDistrict] = useState<DistrictInfo | null>(null);
   const [isDossierOpen, setIsDossierOpen] = useState<boolean>(false);
+  const [readerStoryId, setReaderStoryId] = useState<string | null>(null);
+  const [isReaderOpen, setIsReaderOpen] = useState<boolean>(false);
   const [pendingRequestsCount, setPendingRequestsCount] = useState<number>(0);
 
   const [savedTripNotes, setSavedTripNotes] = useState<string>(() => {
@@ -85,6 +88,8 @@ export default function App() {
   isFriendsOpenRef.current = isFriendsOpen;
   const isDossierOpenRef = useRef<boolean>(isDossierOpen);
   isDossierOpenRef.current = isDossierOpen;
+  const isReaderOpenRef = useRef<boolean>(isReaderOpen);
+  isReaderOpenRef.current = isReaderOpen;
 
   useEffect(() => {
     socialService
@@ -114,6 +119,10 @@ export default function App() {
     const cleanupBack = registerAndroidBackButton(() => {
       if (isDossierOpenRef.current) {
         setIsDossierOpen(false);
+        return;
+      }
+      if (isReaderOpenRef.current) {
+        setIsReaderOpen(false);
         return;
       }
       if (isShareOpenRef.current) {
@@ -282,6 +291,10 @@ export default function App() {
             onPlayStory={handlePlayStory}
             onStopStory={handleStopAudio}
             onShareStory={handleShareStory}
+            onOpenReader={(id) => {
+              setReaderStoryId(id);
+              setIsReaderOpen(true);
+            }}
           />
         )}
 
@@ -461,6 +474,14 @@ export default function App() {
         onClose={() => setIsOfflineOpen(false)}
         savedTripNotes={savedTripNotes}
         onPackUpdated={() => setIsOfflineReady(true)}
+      />
+
+      <UtkalKathaReaderModal
+        storyId={readerStoryId}
+        isOpen={isReaderOpen}
+        onClose={() => setIsReaderOpen(false)}
+        language={language}
+        setLanguage={setLanguage}
       />
 
       {/* Footer matching Application 1 */}
