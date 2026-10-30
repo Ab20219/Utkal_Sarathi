@@ -14,6 +14,16 @@ export interface FloatingAudioBarProps {
   onTogglePlayPause: () => void;
   onStop: () => void;
   language: AppLanguage;
+  elapsedSec?: number;
+  durationSec?: number;
+  onSeek?: (positionSec: number) => void;
+}
+
+function formatTime(sec: number): string {
+  if (!Number.isFinite(sec) || sec < 0) return '0:00';
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
 
 export const FloatingAudioBar: React.FC<FloatingAudioBarProps> = ({
@@ -27,26 +37,60 @@ export const FloatingAudioBar: React.FC<FloatingAudioBarProps> = ({
   onTogglePlayPause,
   onStop,
   language,
+  elapsedSec = 0,
+  durationSec = 0,
+  onSeek,
 }) => {
   if (!isPlaying && !isPaused) return null;
 
+  const progressPercent = durationSec > 0 ? Math.min(100, (elapsedSec / durationSec) * 100) : 0;
+
   return (
     <aside
-      className="fixed bottom-0 left-0 right-0 z-50 bg-[#13161c]/95 backdrop-blur-md border-t border-[#e5b85b]/40 shadow-2xl px-4 py-3 sm:py-3.5 transition-all"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-[#13161c]/95 backdrop-blur-md border-t border-[#e5b85b]/40 shadow-2xl transition-all"
       aria-label="Utkal Katha Audio Player"
     >
-      <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      {/* Interactive Progress Bar */}
+      {durationSec > 0 && (
+        <div
+          className="w-full h-1.5 bg-[#2a3140] cursor-pointer group relative overflow-hidden"
+          onClick={(e) => {
+            if (!onSeek) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+            onSeek(ratio * durationSec);
+          }}
+        >
+          <div
+            className="h-full bg-gradient-to-r from-[#ff7a1a] to-[#e5b85b] transition-all duration-150"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto px-4 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-3">
         {/* Story Info */}
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="w-9 h-9 rounded-full bg-[#ff7a1a]/20 border border-[#ff7a1a]/40 flex items-center justify-center shrink-0">
-            <Volume2 className="w-5 h-5 text-[#e5b85b] animate-pulse" />
+            <Volume2 className={`w-5 h-5 text-[#e5b85b] ${isPlaying ? 'animate-pulse' : ''}`} />
           </div>
           <div className="min-w-0">
-            <h4 className="text-sm sm:text-base font-bold text-[#e5b85b] truncate">
-              {title || 'Utkal Katha Narration'}
-            </h4>
-            <p className="text-xs text-[#b6b1a6] truncate">
-              {destination} {classification ? `• ${classification}` : ''}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded bg-[#ff7a1a]/20 text-[#ff7a1a] border border-[#ff7a1a]/30">
+                {language.toUpperCase()}
+              </span>
+              <h4 className="text-sm sm:text-base font-bold text-[#e5b85b] truncate">
+                {title || 'Utkal Katha Narration'}
+              </h4>
+            </div>
+            <p className="text-xs text-[#b6b1a6] truncate flex items-center gap-2 mt-0.5">
+              <span>{destination} {classification ? `• ${classification}` : ''}</span>
+              {durationSec > 0 && (
+                <span className="font-mono text-[11px] text-[#e5b85b]">
+                  {formatTime(elapsedSec)} / {formatTime(durationSec)}
+                </span>
+              )}
             </p>
           </div>
         </div>

@@ -44,6 +44,11 @@ export default function App() {
     try {
       localStorage.setItem('utkal_lang', lang);
     } catch {}
+    // Ensure switching languages immediately stops any active playback of previous language
+    unifiedVoicePipeline.stopAll();
+    setIsAudioPlaying(false);
+    setIsAudioPaused(false);
+    setActiveStory(null);
   }, []);
 
   // Modals state
@@ -73,6 +78,10 @@ export default function App() {
   const [isAudioPlaying, setIsAudioPlaying] = useState<boolean>(false);
   const [isAudioPaused, setIsAudioPaused] = useState<boolean>(false);
   const [audioSpeed, setAudioSpeed] = useState<number>(1.0);
+  const [audioProgress, setAudioProgress] = useState<{ elapsed: number; duration: number }>({
+    elapsed: 0,
+    duration: 0,
+  });
 
   // Navigation history stack for Android Hardware Back Button
   const tabHistoryRef = useRef<string[]>(['districts']);
@@ -163,6 +172,7 @@ export default function App() {
       setActiveStory(story);
       setIsAudioPlaying(true);
       setIsAudioPaused(false);
+      setAudioProgress({ elapsed: 0, duration: 0 });
 
       const title = language === 'or' ? story.titleOdia : language === 'hi' ? story.titleHindi : story.titleEn;
       const body = language === 'or' ? story.bodyOdia : language === 'hi' ? story.bodyHindi : story.bodyEn;
@@ -183,10 +193,15 @@ export default function App() {
           setIsAudioPlaying(false);
           setIsAudioPaused(false);
           setActiveStory(null);
+          setAudioProgress({ elapsed: 0, duration: 0 });
         },
         onError: () => {
           setIsAudioPlaying(false);
           setIsAudioPaused(false);
+          setAudioProgress({ elapsed: 0, duration: 0 });
+        },
+        onTimeUpdate: (elapsedSec, durationSec) => {
+          setAudioProgress({ elapsed: elapsedSec, duration: durationSec });
         },
       });
     },
@@ -210,6 +225,12 @@ export default function App() {
     setIsAudioPlaying(false);
     setIsAudioPaused(false);
     setActiveStory(null);
+    setAudioProgress({ elapsed: 0, duration: 0 });
+  }, []);
+
+  const handleSeekAudio = useCallback((positionSec: number) => {
+    unifiedVoicePipeline.seek(positionSec);
+    setAudioProgress((prev) => ({ ...prev, elapsed: positionSec }));
   }, []);
 
   const handleSpeedChange = useCallback(
@@ -415,6 +436,9 @@ export default function App() {
         onTogglePlayPause={handleTogglePlayPause}
         onStop={handleStopAudio}
         language={language}
+        elapsedSec={audioProgress.elapsed}
+        durationSec={audioProgress.duration}
+        onSeek={handleSeekAudio}
       />
 
       {/* Floating Action Button for Utkal Mitra Assistant */}

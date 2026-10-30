@@ -137,9 +137,33 @@ class UnifiedVoicePipelineService {
   private activeAbortController: AbortController | null = null;
   private isSpeakingInternal = false;
   private listeners = new Set<(isSpeaking: boolean) => void>();
+  private audioPreloadCache = new Map<string, HTMLAudioElement>();
+  private speechQueue: string[] = [];
+  private isSpeechQueueActive = false;
+
+  public preloadAudio(url: string): void {
+    if (typeof window === 'undefined' || !url || this.audioPreloadCache.has(url)) return;
+    try {
+      const audio = new Audio();
+      audio.preload = 'auto';
+      audio.src = url;
+      this.audioPreloadCache.set(url, audio);
+    } catch {}
+  }
 
   public isSpeaking(): boolean {
     return this.isSpeakingInternal;
+  }
+
+  public seek(positionSec: number): void {
+    if (this.currentAudio && Number.isFinite(positionSec)) {
+      try {
+        this.currentAudio.currentTime = Math.max(
+          0,
+          Math.min(this.currentAudio.duration || 0, positionSec)
+        );
+      } catch {}
+    }
   }
 
   public subscribe(listener: (isSpeaking: boolean) => void): () => void {
@@ -168,6 +192,9 @@ class UnifiedVoicePipelineService {
       } catch {}
       this.activeAbortController = null;
     }
+
+    this.isSpeechQueueActive = false;
+    this.speechQueue = [];
 
     if (this.currentAudio) {
       try {
@@ -271,7 +298,16 @@ class UnifiedVoicePipelineService {
 
     if (bundledAudioUrl) {
       try {
-        const audio = new Audio(bundledAudioUrl);
+        let audio = this.audioPreloadCache.get(bundledAudioUrl);
+        if (!audio) {
+          audio = new Audio(bundledAudioUrl);
+          audio.preload = 'auto';
+          this.audioPreloadCache.set(bundledAudioUrl, audio);
+        } else {
+          try {
+            audio.currentTime = 0;
+          } catch {}
+        }
         audio.playbackRate = normalizedRate;
         this.currentAudio = audio;
 
@@ -312,14 +348,17 @@ class UnifiedVoicePipelineService {
             ).then(resolve);
           };
 
-          audio.play().catch(() => {
-            this.currentAudio = null;
-            this.proceedWithServerOrBrowserSpeech(
-              request,
-              normalizedRate,
-              abortController
-            ).then(resolve);
-          });
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {
+              this.currentAudio = null;
+              this.proceedWithServerOrBrowserSpeech(
+                request,
+                normalizedRate,
+                abortController
+              ).then(resolve);
+            });
+          }
         });
       } catch {
         // Fall through
@@ -495,6 +534,8 @@ class UnifiedVoicePipelineService {
 
   /**
    * Browser Speech Synthesis Fallback with genuine language fidelity rules.
+   * Uses sentence chunking to completely prevent Android Chrome's 15s pause bug
+   * without introducing artificial pause/resume interruptions.
    */
   private async fallbackBrowserSpeech(
     text: string,
@@ -511,7 +552,7 @@ class UnifiedVoicePipelineService {
       return { success: false, engine: 'none', voiceLabel: 'Unavailable', notice: msg };
     }
 
-    const voices = await ensureBrowserVoicesReady(3500);
+    const voices = await ensureBrowserVoicesReady(1000);
     const selection: BrowserVoiceSelection = selectBestBrowserVoiceAndText(
       text,
       lang,
@@ -520,40 +561,32 @@ class UnifiedVoicePipelineService {
       0
     );
 
-    // If device doesn't have native Odia voice:
-    // 1. Prefer Hindi voice with Devanagari phonetic conversion (sounds very close to Odia, warm & natural).
-    // 2. If no Indian voice is installed at all, speak the clean text without pitch warping.
+    // Natural cadence adjustment: Odia speech is crisper and slightly brisker
+    const effectiveRate = lang === 'or' ? Math.min(1.25, rate * 1.08) : rate;
+
+    // Split text into natural sentence units for smooth continuous flow on mobile
+    const rawChunks = selection.spokenText
+      .split(/([।\.!\?\n]+)/)
+      .filter((s) => s.trim().length > 0);
+    const sentences: string[] = [];
+    for (let i = 0; i < rawChunks.length; i += 2) {
+      const sentence = (rawChunks[i] + (rawChunks[i + 1] || '')).trim();
+      if (sentence) sentences.push(sentence);
+    }
+    if (sentences.length === 0) {
+      sentences.push(selection.spokenText);
+    }
+
+    this.speechQueue = [...sentences];
+    this.isSpeechQueueActive = true;
+
     return new Promise<PlaySpeechResult>((resolve) => {
-      try {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(selection.spokenText);
-        if (selection.voice) {
-          utterance.voice = selection.voice;
-        }
-        utterance.lang = selection.langTag;
-        // Pitch locked to natural human pitch (1.0) to eliminate squeaky alien distortion
-        utterance.pitch = 1.0;
-        utterance.rate = rate; // Natural normal reading speed
+      let chunkIndex = 0;
+      let hasStarted = false;
 
-        let keepAliveTimer: any = null;
-
-        utterance.onstart = () => {
-          this.notify(true);
-          onStart?.();
-
-          // Android WebView Audio Keep-Alive: prevents Chrome from pausing long utterances
-          keepAliveTimer = setInterval(() => {
-            if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
-              window.speechSynthesis.pause();
-              window.speechSynthesis.resume();
-            } else {
-              clearInterval(keepAliveTimer);
-            }
-          }, 10000);
-        };
-
-        utterance.onend = () => {
-          if (keepAliveTimer) clearInterval(keepAliveTimer);
+      const speakNextChunk = () => {
+        if (!this.isSpeechQueueActive || chunkIndex >= this.speechQueue.length) {
+          this.isSpeechQueueActive = false;
           this.notify(false);
           this.currentUtterance = null;
           onEnded?.();
@@ -562,25 +595,87 @@ class UnifiedVoicePipelineService {
             engine: 'browser-speech',
             voiceLabel: selection.voice?.name || selection.langTag,
           });
-        };
+          return;
+        }
 
-        utterance.onerror = (e) => {
-          if (keepAliveTimer) clearInterval(keepAliveTimer);
+        const currentText = this.speechQueue[chunkIndex];
+        try {
+          const utterance = new SpeechSynthesisUtterance(currentText);
+          if (selection.voice) {
+            utterance.voice = selection.voice;
+          }
+          utterance.lang = selection.langTag;
+          utterance.pitch = 1.0;
+          utterance.rate = effectiveRate;
+
+          utterance.onstart = () => {
+            if (!hasStarted) {
+              hasStarted = true;
+              this.notify(true);
+              onStart?.();
+            }
+          };
+
+          utterance.onend = () => {
+            chunkIndex++;
+            speakNextChunk();
+          };
+
+          utterance.onerror = (e) => {
+            if (e.error === 'interrupted' || e.error === 'canceled') {
+              // Expected when stopping or skipping
+              this.isSpeechQueueActive = false;
+              this.notify(false);
+              this.currentUtterance = null;
+              resolve({
+                success: false,
+                engine: 'browser-speech',
+                voiceLabel: 'Cancelled',
+                error: e.error,
+              });
+              return;
+            }
+
+            // Retry or proceed to next sentence
+            chunkIndex++;
+            if (chunkIndex < this.speechQueue.length) {
+              speakNextChunk();
+            } else {
+              this.isSpeechQueueActive = false;
+              this.notify(false);
+              this.currentUtterance = null;
+              const err = new Error(`Speech synthesis error: ${e.error}`);
+              onError?.(err);
+              resolve({
+                success: false,
+                engine: 'browser-speech',
+                voiceLabel: 'Error',
+                error: e.error,
+              });
+            }
+          };
+
+          this.currentUtterance = utterance;
+          window.speechSynthesis.speak(utterance);
+        } catch (err: any) {
+          this.isSpeechQueueActive = false;
           this.notify(false);
           this.currentUtterance = null;
-          const err = new Error(`Speech synthesis error: ${e.error}`);
           onError?.(err);
           resolve({
             success: false,
             engine: 'browser-speech',
-            voiceLabel: 'Error',
-            error: e.error,
+            voiceLabel: 'Failed',
+            error: err?.message || 'Speech synthesis failed',
           });
-        };
+        }
+      };
 
-        this.currentUtterance = utterance;
-        window.speechSynthesis.speak(utterance);
+      try {
+        window.speechSynthesis.cancel();
+        speakNextChunk();
       } catch (err: any) {
+        this.isSpeechQueueActive = false;
         this.notify(false);
         this.currentUtterance = null;
         onError?.(err);

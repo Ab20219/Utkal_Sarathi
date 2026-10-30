@@ -51,10 +51,21 @@ export interface DayPlan {
   totalDayCost: number;
 }
 
+export type TripInterest =
+  | 'heritage'
+  | 'nature'
+  | 'tribal_crafts'
+  | 'beaches'
+  | 'spiritual'
+  | 'tribal_culture'
+  | 'waterfalls'
+  | 'cuisine'
+  | 'photography';
+
 export interface PlanRequest {
   startCity: string;
   days: number;
-  interests: ('heritage' | 'nature' | 'tribal_crafts' | 'beaches' | 'spiritual')[];
+  interests: (TripInterest | string)[];
   travelStyle: 'budget' | 'moderate' | 'luxury';
   includeNearby?: boolean;
   selectedNearbyDistrictIds?: string[];
@@ -425,13 +436,114 @@ import { getNearbyDistricts, type NearbyPlaceDetail, ODISHA_NEARBY_DISTRICTS } f
  * Filter destinations by interest or return popular balanced set
  */
 export function filterDestinations(
-  interests: ('heritage' | 'nature' | 'tribal_crafts' | 'beaches' | 'spiritual')[]
+  interests: (TripInterest | string)[]
 ): Destination[] {
   if (!interests || interests.length === 0) {
     return ODISHA_DESTINATIONS;
   }
-  const filtered = ODISHA_DESTINATIONS.filter(d => interests.includes(d.category));
+  const filtered = ODISHA_DESTINATIONS.filter(d => {
+    return interests.some(interest => {
+      if (interest === d.category) return true;
+      if (interest === 'heritage') return d.category === 'heritage';
+      if (interest === 'spiritual') return d.category === 'spiritual';
+      if (interest === 'nature') return d.category === 'nature';
+      if (interest === 'beaches') return d.category === 'beaches' || d.region.includes('Coastal');
+      if (interest === 'tribal_crafts' || interest === 'tribal_culture') return d.category === 'tribal_crafts';
+      if (interest === 'waterfalls') return d.category === 'nature' || d.description.toLowerCase().includes('waterfall') || d.name.toLowerCase().includes('waterfall');
+      if (interest === 'cuisine') return Boolean(d.cuisineHighlight);
+      if (interest === 'photography') return true;
+      return false;
+    });
+  });
   return filtered.length > 0 ? filtered : ODISHA_DESTINATIONS;
+}
+
+export interface SavedItineraryRecord {
+  id: string;
+  title: string;
+  createdAt: number;
+  startCity: string;
+  days: number;
+  travelers: number;
+  travelStyle: 'budget' | 'moderate' | 'luxury';
+  tripScope: 'single' | 'nearby' | 'multi';
+  selectedNearbyDistricts?: string[];
+  selectedMultiDistricts?: string[];
+  selectedInterests: string[];
+  totalCost: number;
+  plans: DayPlan[];
+  targetBudget?: number;
+  notes?: string;
+}
+
+const SAVED_ITINERARIES_STORAGE_KEY = 'utkalsarathi_saved_itineraries_v2';
+
+export function loadSavedItineraries(): SavedItineraryRecord[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(SAVED_ITINERARIES_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {
+    console.error('Error loading saved itineraries', err);
+  }
+  return [];
+}
+
+export function saveItineraryRecord(record: SavedItineraryRecord): SavedItineraryRecord[] {
+  if (typeof window === 'undefined') return [record];
+  try {
+    const current = loadSavedItineraries();
+    const existingIdx = current.findIndex(r => r.id === record.id);
+    let updated: SavedItineraryRecord[];
+    if (existingIdx >= 0) {
+      updated = [...current];
+      updated[existingIdx] = record;
+    } else {
+      updated = [record, ...current];
+    }
+    localStorage.setItem(SAVED_ITINERARIES_STORAGE_KEY, JSON.stringify(updated));
+    return updated;
+  } catch (err) {
+    console.error('Error saving itinerary record', err);
+    return [];
+  }
+}
+
+export function deleteSavedItineraryRecord(id: string): SavedItineraryRecord[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const current = loadSavedItineraries();
+    const updated = current.filter(r => r.id !== id);
+    localStorage.setItem(SAVED_ITINERARIES_STORAGE_KEY, JSON.stringify(updated));
+    return updated;
+  } catch (err) {
+    console.error('Error deleting saved itinerary', err);
+    return [];
+  }
+}
+
+export function duplicateSavedItineraryRecord(id: string): SavedItineraryRecord[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const current = loadSavedItineraries();
+    const target = current.find(r => r.id === id);
+    if (!target) return current;
+    const duplicated: SavedItineraryRecord = {
+      ...target,
+      id: `itinerary_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      title: `${target.title} (Copy)`,
+      createdAt: Date.now(),
+    };
+    const updated = [duplicated, ...current];
+    localStorage.setItem(SAVED_ITINERARIES_STORAGE_KEY, JSON.stringify(updated));
+    return updated;
+  } catch (err) {
+    console.error('Error duplicating saved itinerary', err);
+    return [];
+  }
 }
 
 /**
