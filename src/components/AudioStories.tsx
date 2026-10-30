@@ -253,9 +253,9 @@ export const AudioStories: React.FC<AudioStoriesProps> = ({
     narrativeText: currentTranscript,
     lang: selectedLang,
     playbackSpeed,
-    allowPhoneticFallback,
-    onPlaybackStart: startAmbientSound,
-    onPlaybackStopOrComplete: stopAmbientSound,
+    allowPhoneticFallback: false,
+    onPlaybackStart: undefined,
+    onPlaybackStopOrComplete: undefined,
   });
 
   const {

@@ -1,145 +1,116 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Oriya:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Oriya:wght@400;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+:root {
+  --obsidian: #0b0d10;
+  --charcoal: #13161c;
+  --charcoal-elevated: #1b2029;
+  --charcoal-hover: #242b38;
+  --border: #2a3140;
+  --border-gold: rgba(229, 184, 91, 0.38);
+  --saffron: #ff7a1a;
+  --saffron-deep: #e06308;
+  --gold: #e5b85b;
+  --ivory: #f7f3e8;
+  --ivory-muted: #b6b1a6;
+  --teal: #1ca39e;
+  --emerald: #22c55e;
+  --whatsapp: #25d366;
+  --amber: #f59e0b;
+  --crimson: #ef4444;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', 'Noto Sans Oriya', 'Noto Sans Devanagari', system-ui, -apple-system, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--obsidian);
+  color: var(--ivory);
+}
+
 body {
-  font-family: 'Plus Jakarta Sans', 'Noto Sans Oriya', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  font-family: var(--font-sans);
+  background: radial-gradient(circle at 18% 0%, rgba(255, 122, 26, 0.12), transparent 42%),
+    radial-gradient(circle at 85% 12%, rgba(28, 163, 158, 0.10), transparent 38%),
+    var(--obsidian);
+  color: var(--ivory);
+  line-height: 1.6;
+  min-height: 100vh;
   overflow-x: hidden;
 }
 
-@keyframes spinSlow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Light mode overrides when user explicitly selects Light Mode */
+:root:not(.dark):where([data-theme="light"], [data-theme="light"] *) {
+  --obsidian: #f8fafc;
+  --charcoal: #ffffff;
+  --charcoal-elevated: #f1f5f9;
+  --charcoal-hover: #e2e8f0;
+  --border: #cbd5e1;
+  --border-gold: rgba(217, 119, 6, 0.4);
+  --ivory: #0f172a;
+  --ivory-muted: #475569;
 }
 
-.animate-spin-slow {
-  animation: spinSlow 24s linear infinite;
+[data-theme="light"] body {
+  background: radial-gradient(circle at 18% 0%, rgba(255, 122, 26, 0.08), transparent 42%),
+    radial-gradient(circle at 85% 12%, rgba(28, 163, 158, 0.06), transparent 38%),
+    #f8fafc;
+  color: #0f172a;
 }
 
-/* ========================================================
-   macOS Cupertino UI & Smooth Translucent Scrollbars
-   ======================================================== */
-[data-os="mac"] {
-  --scrollbar-thumb: rgba(217, 119, 6, 0.35);
-  --scrollbar-track: transparent;
+/* Serif headings matching Application 1 */
+h1, h2, h3, .font-serif-brand {
+  font-family: var(--font-serif);
 }
 
-[data-os="mac"] ::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-[data-os="mac"] ::-webkit-scrollbar-track {
-  background: transparent;
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.25);
 }
 
-[data-os="mac"] ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: 9999px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-
-[data-os="mac"] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(245, 158, 11, 0.5);
-  border-radius: 9999px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-
-/* ========================================================
-   Windows 11 Fluent Acrylic UI & Crisp Scrollbars
-   ======================================================== */
-[data-os="windows"] {
-  --scrollbar-thumb: #374151;
-  --scrollbar-track: #111827;
-}
-
-[data-os="windows"] ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-[data-os="windows"] ::-webkit-scrollbar-track {
-  background: #0f172a;
-}
-
-[data-os="windows"] ::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 2px;
-  border: 1px solid #1e293b;
-}
-
-[data-os="windows"] ::-webkit-scrollbar-thumb:hover {
-  background: #0284c7;
-}
-
-/* Universal Clean Custom Scrollbar Utility */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(245, 158, 11, 0.3);
-  border-radius: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(245, 158, 11, 0.6);
-}
-
-/* ========================================================
-   Android System & Mobile Touch Polish
-   ======================================================== */
-[data-os="android"] {
-  -webkit-tap-highlight-color: rgba(16, 185, 129, 0.15);
-}
-
-[data-os="android"] ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-
-[data-os="android"] ::-webkit-scrollbar-thumb {
-  background: rgba(16, 185, 129, 0.4);
-  border-radius: 4px;
-}
-
-/* ========================================================
-   iOS Mobile System
-   ======================================================== */
-[data-os="ios"] {
-  -webkit-tap-highlight-color: rgba(168, 85, 247, 0.15);
-  -webkit-overflow-scrolling: touch;
-}
-
-[data-os="ios"] ::-webkit-scrollbar {
-  width: 3px;
-  height: 3px;
-}
-
-[data-os="ios"] ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+::-webkit-scrollbar-thumb {
+  background: rgba(229, 184, 91, 0.35);
   border-radius: 9999px;
 }
 
-/* Safe area insets for mobile devices */
-.safe-bottom {
-  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(229, 184, 91, 0.65);
 }
 
-.safe-top {
-  padding-top: max(0.5rem, env(safe-area-inset-top));
+/* Badge styles from Application 1 */
+.badge-epistemic {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
+.badge-history {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+}
+
+.badge-archaeology {
+  background: rgba(28, 163, 158, 0.15);
+  color: #2dd4bf;
+  border: 1px solid rgba(28, 163, 158, 0.35);
+}
+
+.badge-folklore {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}

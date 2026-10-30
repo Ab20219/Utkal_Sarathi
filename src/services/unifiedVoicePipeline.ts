@@ -376,25 +376,9 @@ class UnifiedVoicePipelineService {
       0
     );
 
-    // Language Fidelity Rule for Odia:
-    // If no genuine Odia voice exists on the device, DO NOT silently masquerade Hindi/English as Odia.
-    if (lang === 'or' && selection.mode !== 'native_odia') {
-      if (!allowPhoneticFallback) {
-        logSafeVoiceDiagnostic('OdiaVoiceUnavailable', {
-          engine: 'browser-speech',
-          lang: 'or',
-          mode: 'blocked_silent_substitution',
-        });
-        const notice = 'Native Odia voice synthesis not installed on this device. Displaying text.';
-        return {
-          success: false,
-          engine: 'browser-speech',
-          voiceLabel: 'Odia Voice Missing',
-          notice,
-        };
-      }
-    }
-
+    // If device doesn't have native Odia voice:
+    // 1. Prefer Hindi voice with Devanagari phonetic conversion (sounds very close to Odia, warm & natural).
+    // 2. If no Indian voice is installed at all, speak the clean text without pitch warping.
     return new Promise<PlaySpeechResult>((resolve) => {
       try {
         window.speechSynthesis.cancel();

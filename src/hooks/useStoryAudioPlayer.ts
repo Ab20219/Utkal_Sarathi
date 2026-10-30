@@ -412,20 +412,16 @@ export function useStoryAudioPlayer({
             storyIndex
           );
 
-          // Prevent silent substitution of Hindi speech for Odia unless user explicitly opted into offline phonetic mode
-          const isNonNativeOdiaSubstitution =
-            lang === 'or' && selection.mode !== 'native_odia' && !allowPhoneticFallback;
-
-          if (!isNonNativeOdiaSubstitution) {
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(selection.spokenText);
-            if (selection.voice) utterance.voice = selection.voice;
-            utterance.lang = selection.langTag;
-            utterance.pitch = 1.0; // Natural, human speaking pitch (avoids robotic distortion)
-            utterance.rate = Math.max(
-              0.7,
-              Math.min(1.5, playbackSpeedRef.current)
-            ); // Natural human speaking speed (respects user speed control)
+          // Clean speech synthesis with natural cadence (pitch strictly 1.0)
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(selection.spokenText);
+          if (selection.voice) utterance.voice = selection.voice;
+          utterance.lang = selection.langTag;
+          utterance.pitch = 1.0; // Natural, human speaking pitch (avoids robotic distortion)
+          utterance.rate = Math.max(
+            0.7,
+            Math.min(1.5, playbackSpeedRef.current)
+          ); // Natural human speaking speed (respects user speed control)
 
             activeEngineRef.current = 'browser-speech';
             const estDur = estimateChunkDurationSec(chunk.text, lang, utterance.rate);
@@ -495,7 +491,6 @@ export function useStoryAudioPlayer({
 
             window.speechSynthesis.speak(utterance);
             return;
-          }
         }
 
         // Honest error state without restarting story or silently substituting Hindi for Odia
