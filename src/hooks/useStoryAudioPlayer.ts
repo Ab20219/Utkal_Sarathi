@@ -7,7 +7,10 @@ import {
   type NarrationChunk,
   type StoryTimelineState,
 } from '../utils/storyAudioTiming';
-import { selectBestBrowserVoiceAndText } from '../utils/indicPhoneticBridge';
+import {
+  selectBestBrowserVoiceAndText,
+  ensureBrowserVoicesReady,
+} from '../utils/indicPhoneticBridge';
 import { getMonumentVoiceProfile } from '../data/monumentVoiceProfiles';
 import { getStoryAudioUrl } from '../data/storyAudioMap';
 import { fetchApi } from '../utils/apiConfig';
@@ -405,10 +408,14 @@ export function useStoryAudioPlayer({
 
         // Cloud TTS failed -> Check browser speech synthesis with strict language-integrity rules
         if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+          const voices =
+            availableVoices.length > 0
+              ? availableVoices
+              : await ensureBrowserVoicesReady(3500);
           const selection = selectBestBrowserVoiceAndText(
             chunk.text,
             lang,
-            availableVoices,
+            voices,
             monumentProfile.preferredVoiceGender,
             storyIndex
           );

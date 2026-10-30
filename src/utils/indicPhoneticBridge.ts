@@ -20,7 +20,7 @@ export interface BrowserVoiceSelection {
  * Ensures browser speech synthesis voices are populated on mobile devices (Android WebView / Chrome)
  * where window.speechSynthesis.getVoices() returns [] on initial page load.
  */
-export function ensureBrowserVoicesReady(timeoutMs = 1200): Promise<SpeechSynthesisVoice[]> {
+export function ensureBrowserVoicesReady(timeoutMs = 3500): Promise<SpeechSynthesisVoice[]> {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
     return Promise.resolve([]);
   }
@@ -30,21 +30,28 @@ export function ensureBrowserVoicesReady(timeoutMs = 1200): Promise<SpeechSynthe
   }
   return new Promise((resolve) => {
     let resolved = false;
-    const timer = setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        resolve(window.speechSynthesis.getVoices());
-      }
-    }, timeoutMs);
+    let pollInterval: any = null;
+    let timer: any = null;
 
-    const onVoices = () => {
+    const cleanupAndResolve = () => {
       if (!resolved) {
         resolved = true;
-        clearTimeout(timer);
+        if (pollInterval) clearInterval(pollInterval);
+        if (timer) clearTimeout(timer);
         resolve(window.speechSynthesis.getVoices());
       }
     };
-    window.speechSynthesis.onvoiceschanged = onVoices;
+
+    timer = setTimeout(cleanupAndResolve, timeoutMs);
+
+    pollInterval = setInterval(() => {
+      const v = window.speechSynthesis.getVoices();
+      if (v && v.length > 0) {
+        cleanupAndResolve();
+      }
+    }, 80);
+
+    window.speechSynthesis.onvoiceschanged = cleanupAndResolve;
   });
 }
 
@@ -162,15 +169,17 @@ export function selectBestBrowserVoiceAndText(
     );
     if (hindiVoices.length > 0) {
       const chosen = pickByGenderOrSeed(hindiVoices);
-      return {
-        voice: chosen,
-        langTag: chosen?.lang || 'hi-IN',
-        spokenText: odiaToDevanagariPhonetic(cleanRaw),
-        mode: 'hindi_phonetic_bridge',
-      };
+      if (chosen) {
+        return {
+          voice: chosen,
+          langTag: chosen.lang || 'hi-IN',
+          spokenText: odiaToDevanagariPhonetic(cleanRaw),
+          mode: 'hindi_phonetic_bridge',
+        };
+      }
     }
 
-    // 3. If neither Odia nor Hindi voice is installed, use clear English narration instead of alien romanization
+    // 3. If neither Odia nor Hindi voice is installed, NEVER pass Indic text to an English synthesizer (prevents alien/robotic sound)
     const indianEnVoices = voices.filter((v) => v.lang.toLowerCase() === 'en-in');
     const enVoices = indianEnVoices.length > 0 ? indianEnVoices : voices.filter((v) => v.lang.toLowerCase().startsWith('en'));
     const chosen = pickByGenderOrSeed(enVoices);

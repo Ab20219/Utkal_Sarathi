@@ -80,65 +80,14 @@ export const STORY_ID_TO_AUDIO_MAP: Record<string, string> = {
 
 /**
  * Resolves the URL of a bundled studio audio clip for a story or district.
- * Validates against available pre-rendered WAV files.
+ * Returns null unless verified, authentic studio voice narration is bundled.
+ * Synthetic drone soundscapes are NOT used as voice narration to prevent metallic/alien distortion.
  */
 export function getStoryAudioUrl(
   storyOrDistrictId: string,
   lang: 'en' | 'or' | 'hi'
 ): string | null {
-  if (!storyOrDistrictId) return null;
-  const key = storyOrDistrictId.toLowerCase().trim();
-
-  // 1. Direct match on story ID
-  let audioKey = STORY_ID_TO_AUDIO_MAP[key];
-
-  // 2. Check if key is a district ID or contains a district name
-  if (!audioKey) {
-    if (DISTRICT_TO_AUDIO_MAP[key]) {
-      audioKey = DISTRICT_TO_AUDIO_MAP[key];
-    } else {
-      for (const [dist, mappedKey] of Object.entries(DISTRICT_TO_AUDIO_MAP)) {
-        if (key.includes(dist)) {
-          audioKey = mappedKey;
-          break;
-        }
-      }
-    }
-  }
-
-  // 3. Check for destination keywords
-  if (!audioKey) {
-    if (key.includes('konark')) audioKey = 'story-konark';
-    else if (key.includes('dhauli')) audioKey = 'story-dhauli';
-    else if (key.includes('cuttack') || key.includes('barabati') || key.includes('bali'))
-      audioKey = 'story-cuttack-barabati';
-    else if (key.includes('puri') || key.includes('jagannath')) audioKey = 'story-puri-jagannath';
-    else if (key.includes('chilika')) audioKey = 'story-chilika';
-    else if (key.includes('hirakud') || key.includes('sambalpur'))
-      audioKey = 'story-hirakud-sambalpur';
-    else if (key.includes('similipal')) audioKey = 'story-similipal';
-    else if (key.includes('koraput') || key.includes('sabara'))
-      audioKey = 'story-sunabeda-koraput-sabara';
-    else if (key.includes('raghurajpur')) audioKey = 'story-raghurajpur';
-    else if (key.includes('lingaraj')) audioKey = 'story-lingaraj';
-    else if (key.includes('khandagiri') || key.includes('udayagiri'))
-      audioKey = 'story-khandagiri-udayagiri';
-    else if (key.includes('mukteswar') || key.includes('rajarani'))
-      audioKey = 'story-mukteswar-rajarani';
-    else if (key.includes('yogini') || key.includes('hirapur'))
-      audioKey = 'story-hirapur-yogini';
-    else if (key.includes('biraja') || key.includes('jajpur')) audioKey = 'story-jajpur-biraja';
-    else if (key.includes('bhitarkanika')) audioKey = 'story-bhitarkanika-kanika';
-    else if (key.includes('daringbadi')) audioKey = 'story-daringbadi';
-    else if (key.includes('chandipur')) audioKey = 'story-balasore-chandipur';
-    else if (key.includes('taratarini') || key.includes('jaugada'))
-      audioKey = 'story-jaugada-taratarini';
-    else if (key.includes('kapilash') || key.includes('dhenkanal') || key.includes('baji'))
-      audioKey = 'story-kapilash-joranda';
-  }
-
-  if (!audioKey) return null;
-
-  const validLang = lang === 'or' ? 'or' : lang === 'hi' ? 'hi' : 'en';
-  return `/offline-audio/${audioKey}-${validLang}-seg0.wav`;
+  // Return null so the Unified Voice Pipeline dynamically generates authentic neural speech
+  // or uses high-fidelity on-device speech synthesis with genuine language verification.
+  return null;
 }

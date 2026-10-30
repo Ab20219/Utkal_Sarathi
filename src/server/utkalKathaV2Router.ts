@@ -172,6 +172,48 @@ utkalKathaV2Router.get('/stories/:storyId/audio', (req: Request, res: Response) 
 });
 
 /**
+ * GET /api/v2/utkal-katha/stories/:storyId/stream
+ * Direct streaming WAV endpoint for Utkal Katha stories and chapters.
+ */
+utkalKathaV2Router.get('/stories/:storyId/stream', (req: Request, res: Response) => {
+  const { storyId } = req.params;
+  const { lang = 'en', chapter } = req.query;
+  const story = utkalKathaRepositoryV2.getById(storyId);
+  if (!story) {
+    res.status(404).send('Story not found');
+    return;
+  }
+
+  const validLang = lang === 'or' ? 'or' : lang === 'hi' ? 'hi' : 'en';
+  let textToSynthesize = '';
+  if (chapter) {
+    const chapterNum = parseInt(String(chapter), 10);
+    const ch = utkalKathaRepositoryV2.getChapter(storyId, chapterNum);
+    if (ch) {
+      const title = validLang === 'or' ? ch.titleOr : validLang === 'hi' ? ch.titleHi : ch.titleEn;
+      const content = validLang === 'or' ? ch.contentOr : validLang === 'hi' ? ch.contentHi : ch.contentEn;
+      textToSynthesize = `${title}. ${content}`;
+    }
+  }
+
+  if (!textToSynthesize) {
+    const title = validLang === 'or' ? story.titleOr : validLang === 'hi' ? story.titleHi : story.titleEn;
+    const body =
+      validLang === 'or'
+        ? story.chapters[0]?.contentOr || story.titleOr
+        : validLang === 'hi'
+        ? story.chapters[0]?.contentHi || story.titleHi
+        : story.chapters[0]?.contentEn || story.titleEn;
+    textToSynthesize = `${title}. ${body}`;
+  }
+
+  res.redirect(
+    307,
+    `/api/tts/audio?text=${encodeURIComponent(textToSynthesize.slice(0, 800))}&lang=${validLang}&persona=${encodeURIComponent(storyId)}`
+  );
+});
+
+/**
  * POST /api/v2/utkal-katha/stories/:storyId/favourite
  * Toggle favourite for a story
  */

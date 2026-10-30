@@ -71,12 +71,12 @@ test('verifies pagination and chapter-by-chapter lazy loading prevents heavy pay
   assert.strictEqual(page2.chapters[0].chapterNumber, 11);
 });
 
-test('verifies audio mapping resolves bundled WAV files across English, Odia, and Hindi', () => {
+test('verifies audio mapping resolves streaming endpoints across English, Odia, and Hindi', () => {
   const konark = utkalKathaRepositoryV2.getById('story-konark');
   assert.ok(konark);
-  assert.ok(konark.audioFiles.en.includes('story-konark-en-seg0.wav'));
-  assert.ok(konark.audioFiles.or.includes('story-konark-or-seg0.wav'));
-  assert.ok(konark.audioFiles.hi.includes('story-konark-hi-seg0.wav'));
+  assert.ok(konark.audioFiles.en.includes('stream?lang=en'));
+  assert.ok(konark.audioFiles.or.includes('stream?lang=or'));
+  assert.ok(konark.audioFiles.hi.includes('stream?lang=hi'));
 });
 
 test('verifies user progress tracking and favourites functionality', () => {

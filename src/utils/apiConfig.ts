@@ -138,8 +138,8 @@ export async function fetchApi(path: string, init?: RequestInit): Promise<Respon
     const targetUrl = `${candidates[i]}${normalizedPath}`;
     try {
       const response = await fetch(targetUrl, init);
-      // Retry next candidate only on gateway/service routing errors (502/503/504/404 HTML)
-      if (response.status >= 502 && i + 1 < candidates.length) {
+      // Retry next candidate on 404 or gateway/service errors (500/502/503/504)
+      if ((response.status === 404 || response.status >= 500) && i + 1 < candidates.length) {
         continue;
       }
       return response;

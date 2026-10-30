@@ -7,6 +7,7 @@ import {
   SupportedLanguage,
 } from '../types';
 import { StoryLibraryClient } from '../services/storyLibraryClient';
+import { unifiedVoicePipeline } from '../services/unifiedVoicePipeline';
 import { ODISHA_30_DISTRICTS } from '../data/odishaDistricts';
 import {
   Search,
@@ -125,19 +126,9 @@ export const StoryLibraryBrowser: React.FC<StoryLibraryBrowserProps> = ({
   // Speech Synthesis Narration Engine
   useEffect(() => {
     if (!isPlaying || !activeStory) {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
+      unifiedVoicePipeline.stopAll();
       return;
     }
-
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      showToast('Speech synthesis not supported in this environment.');
-      setIsPlaying(false);
-      return;
-    }
-
-    window.speechSynthesis.cancel();
 
     // Select text based on language
     let textToSpeak = activeStory.storyText;
@@ -147,33 +138,20 @@ export const StoryLibraryBrowser: React.FC<StoryLibraryBrowserProps> = ({
       textToSpeak = activeStory.translations.hi;
     }
 
-    const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.rate = playbackSpeed;
-    utterance.pitch = 0.95; // Warm, slightly deep narrator resonance
+    unifiedVoicePipeline.speak({
+      text: textToSpeak,
+      lang: playbackLang as any,
+      storyId: activeStory.id,
+      playbackSpeed: playbackSpeed,
+      onStart: () => setIsPlaying(true),
+      onEnded: () => setIsPlaying(false),
+      onError: () => setIsPlaying(false),
+    });
 
-    if (playbackLang === 'or') {
-      utterance.lang = 'or-IN';
-    } else if (playbackLang === 'hi') {
-      utterance.lang = 'hi-IN';
-    } else {
-      utterance.lang = 'en-IN';
-    }
-
-    utterance.onend = () => {
-      setIsPlaying(false);
-    };
-
-    utterance.onerror = () => {
-      setIsPlaying(false);
-    };
-
-    window.speechSynthesis.speak(utterance);
     StoryLibraryClient.recordPlay(activeStory.id);
 
     return () => {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
+      unifiedVoicePipeline.stopAll();
     };
   }, [isPlaying, activeStory, playbackLang, playbackSpeed]);
 

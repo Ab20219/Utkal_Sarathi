@@ -921,6 +921,98 @@ app.post('/api/tts', async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/tts/audio
+ * Direct streaming WAV endpoint for HTML5 audio and Android MediaPlayer.
+ */
+app.get('/api/tts/audio', async (req: Request, res: Response) => {
+  try {
+    const text = String(req.query.text || '').trim();
+    const lang = String(req.query.lang || 'en');
+    const persona = String(req.query.persona || 'story-konark');
+
+    if (!text) {
+      res.status(400).send('Text parameter is required');
+      return;
+    }
+
+    const normLang = normalizeLangCode(lang);
+    const cleanText = sanitizeTextForSpeech(text).slice(0, 1100);
+    const monumentProfile = getMonumentVoiceProfile(persona);
+
+    const voiceName: GeminiPrebuiltVoice = monumentProfile
+      ? monumentProfile.geminiVoiceName
+      : normLang === 'or'
+      ? 'Kore'
+      : normLang === 'hi'
+      ? 'Puck'
+      : 'Zephyr';
+
+    const cacheKey = `${persona}:${normLang}:${voiceName}:${cleanText}`;
+    let cached = ttsAudioCache.get(cacheKey);
+
+    let audioBuffer: Buffer | null = null;
+    if (cached?.audioBase64) {
+      audioBuffer = Buffer.from(cached.audioBase64, 'base64');
+    } else if (ai) {
+      const ttsModels = ['gemini-2.0-flash', 'gemini-2.0-flash-exp'];
+      for (const ttsModel of ttsModels) {
+        try {
+          const stylePrompt = monumentProfile
+            ? monumentProfile.voiceStylePrompt[normLang]
+            : normLang === 'or'
+            ? 'Speak in clear, natural, warm native Odia (ଓଡ଼ିଆ) with authentic Odisha pronunciation'
+            : normLang === 'hi'
+            ? 'Speak in clear, natural, warm native Hindi (हिन्दी) with accurate Devanagari pronunciation'
+            : 'Speak in clear, warm, articulate Indian English as an official Odisha cultural guide';
+
+          const response: any = await withTimeout(
+            ai.models.generateContent({
+              model: ttsModel,
+              contents: [{ role: 'user', parts: [{ text: cleanText, speechMetadata: { style: stylePrompt } } as any] }],
+              config: {
+                responseModalities: [Modality.AUDIO],
+                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
+              },
+            }),
+            14000
+          );
+          const inlineAudio = response?.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+          if (inlineAudio?.data) {
+            const rawBuf = Buffer.from(inlineAudio.data, 'base64');
+            const isAlreadyWav =
+              rawBuf.length >= 12 &&
+              rawBuf.subarray(0, 4).toString('ascii') === 'RIFF' &&
+              rawBuf.subarray(8, 12).toString('ascii') === 'WAVE';
+            audioBuffer = isAlreadyWav ? rawBuf : pcm16MonoToWavBuffer(rawBuf, 24000);
+            ttsAudioCache.set(cacheKey, {
+              audioBase64: audioBuffer.toString('base64'),
+              mimeType: 'audio/wav',
+              voiceName,
+              narrator: monumentProfile?.narratorName[normLang] || 'UtkalSarathi',
+              modelUsed: ttsModel,
+            });
+            break;
+          }
+        } catch {}
+      }
+    }
+
+    if (!audioBuffer) {
+      res.status(503).send('Audio synthesis unavailable');
+      return;
+    }
+
+    res.setHeader('Content-Type', 'audio/wav');
+    res.setHeader('Content-Length', audioBuffer.length);
+    res.setHeader('Accept-Ranges', 'bytes');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.send(audioBuffer);
+  } catch (err: any) {
+    res.status(500).send(err?.message || 'TTS Audio streaming failed');
+  }
+});
+
+/**
  * POST /api/transcribe
  * High-accuracy Hindi (हिन्दी), Odia (ଓଡ଼ିଆ), and English speech-to-text using gemini-3.5-transcribe
  * with multimodal fallback to gemini-3.8-flash so spoken Odia & Hindi never fail.

@@ -486,7 +486,7 @@ class UnifiedVoicePipelineService {
       return { success: false, engine: 'none', voiceLabel: 'Unavailable', notice: msg };
     }
 
-    const voices = await ensureBrowserVoicesReady(1200);
+    const voices = await ensureBrowserVoicesReady(3500);
     const selection: BrowserVoiceSelection = selectBestBrowserVoiceAndText(
       text,
       lang,
