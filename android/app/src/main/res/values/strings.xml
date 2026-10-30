@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">UtkalSarathi</string>
+    <string name="title_activity_main">UtkalSarathi</string>
+    <string name="package_name">com.utkalsarathi.app</string>
+    <string name="custom_url_scheme">com.utkalsarathi.app</string>
+</resources>

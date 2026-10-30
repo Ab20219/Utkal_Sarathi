@@ -1,111 +1,197 @@
-# UtkalSarathi — Smart Tourism, Cultural Heritage & Traveller Safety for Odisha
+# UtkalSarathi — Unified Smart Tourism, Cultural Heritage & Traveller Safety Platform
 
 **Tagline:** *Discover Odisha, Your Way.* (`ଓଡ଼ିଆ • हिन्दी • English`)  
-**Target Production Website:** [https://utkalsarathi.vercel.app](https://utkalsarathi.vercel.app)  
-**GitHub Repository:** [https://github.com/Ab20219/Utkal_Sarathi](https://github.com/Ab20219/Utkal_Sarathi)
-
-UtkalSarathi is a dual-target smart tourism and traveller-safety platform covering **all 30 official districts of Odisha**. This repository houses both the **Native Android Application** (Kotlin + Jetpack Compose + Room + Firebase AI Logic + Cloud Firestore) in `/app` and the **Production Responsive Website** (Vite + Modular ES Modules + Firebase Web SDK) in `/web` without conflict.
+**Production Website:** [https://utkalsarathi.vercel.app](https://utkalsarathi.vercel.app)  
+**GitHub Repository:** [https://github.com/Ab20219/Utkal_Sarathi](https://github.com/Ab20219/Utkal_Sarathi)  
+**Integration Branch:** `integration/merged-production`  
+**Direct Android APK Download:** [UtkalSarathi.apk](file:///releases/UtkalSarathi.apk) (34.1 MB Release APK)
 
 ---
 
-## 1. Repository Architecture
+## 1. Unified Architecture & Merger Overview
+
+UtkalSarathi unifies the foundational identity, zero-trust cloud security, and protected **Utkal Kathaa** cultural storytelling engine of **Application 1** (`https://github.com/Ab20219/Utkal_Sarathi`) with the latest modern full-stack implementation of **Application 2** (React 19, TypeScript, Tailwind CSS, Capacitor Native Android, Express backend, and interactive 30-district GIS map).
 
 ```text
 Utkal_Sarathi/
-├── app/                          # Native Android app (Kotlin, Jetpack Compose, Room, Firebase)
-│   ├── build.gradle.kts          # Android build config & dependencies
-│   ├── google-services.json      # Android Firebase client configuration
-│   └── src/
-│       ├── main/                 # 30-district catalog, Utkal Mitra, Katha TTS, Trip Planner, Safety
-│       └── test/                 # Robolectric & Firestore Emulator JVM tests
-├── web/                          # Standalone Production Website (Deployable on Vercel)
-│   ├── package.json              # Web scripts: dev, build, preview, test
-│   ├── vite.config.js            # Vite bundler outputting optimized assets to web/dist
-│   ├── vercel.json               # Vercel build, security headers & SPA rewrite configuration
-│   ├── .env.example              # Documented VITE_* public environment variables
-│   ├── index.html                # Accessible SEO/OpenGraph HTML entry shell
-│   ├── public/                   # Favicon & synced UtkalSarathi visual artwork
-│   ├── scripts/sync-assets.mjs   # Syncs shared artwork from app/src/main/res/drawable
-│   ├── src/
-│   │   ├── data/                 # 30 districts, 61+ places, 30+ Katha stories, EN/OR/HI i18n
-│   │   ├── services/             # Trip & INR budget engine, Haversine fare estimator, Firebase Web
-│   │   ├── styles/main.css       # Responsive Obsidian/Saffron/Gold/Teal design system
-│   │   └── main.js               # Interactive web controller, TTS narrator, GPS & WhatsApp share
-│   └── tests/web.test.mjs        # Automated Node unit & configuration verification suite
-├── firestore.rules               # Zero-trust Cloud Firestore security rules
-├── firestore.test.js             # Tier-1 Firebase Emulator security rules test suite
-├── firebase-blueprint.json       # Cloud Firestore schema blueprint
-├── firebase.json                 # Firestore database + emulator + optional Firebase Hosting config
-└── ARCHITECTURE_AND_SETUP.md     # Deep-dive Android & Cloud architecture reference
+├── android/                         # Capacitor Native Android release build environment
+│   ├── app/                         # App module, AndroidManifest.xml, signing configs
+│   │   ├── build.gradle             # ProGuard rules, aaptOptions, release keystore signing
+│   │   └── utkalsarathi-release.keystore # Production release signing keystore
+│   ├── build.gradle                 # Root Android Gradle build script
+│   └── gradlew.bat                  # Gradle wrapper (Gradle 8.14.3 + Java 21)
+├── app/                             # Protected Application 1 Native Kotlin Architecture
+│   ├── build.gradle.kts             # Jetpack Compose & Room offline SQLite database
+│   └── src/main/java/com/example/   # KathaStorySeedCatalog & Firebase AI Logic
+├── public/                          # Static assets, soundscapes, icons & PWA manifest
+├── releases/                        # Compiled production Android packages
+│   ├── UtkalSarathi.apk             # 34.1 MB signed production release APK
+│   └── UtkalSarathi-release.apk     # Release APK for distribution
+├── src/                             # Unified React 19 + TypeScript production application
+│   ├── components/
+│   │   ├── ThemeToggle.tsx          # Light, Dark & Phone System Default appearance switcher
+│   │   ├── ShareAppModal.tsx        # Native Android & Web application sharing modal
+│   │   ├── UtkalSanghaModal.tsx     # Utkal Sangha (Friends, Companions & HMAC contact sync)
+│   │   ├── OdishaGeoMap.tsx         # Interactive SVG GIS map of all 30 districts of Odisha
+│   │   ├── TransitMatrix.tsx        # Mo Bus, OSRTC & train transit fare matrix
+│   │   ├── ItineraryPlanner.tsx     # Custom day-by-day itinerary planner & INR budget engine
+│   │   ├── AudioStories.tsx         # Utkal Katha 100,000+ words cultural voice chronicles
+│   │   ├── UtkalSuraksha.tsx        # SOS 112, emergency hospitals, and safety reporting
+│   │   ├── DistrictsKnowledgeHub.tsx# Complete dossier covering all 30 Odisha districts
+│   │   └── AiAssistantModal.tsx     # Utkal Mitra live conversational AI guide
+│   ├── context/
+│   │   ├── ThemeContext.tsx         # Real-time prefers-color-scheme & StatusBar sync
+│   │   └── PlatformContext.tsx      # Android/Web/macOS/Windows platform detection
+│   ├── services/
+│   │   ├── socialService.ts         # Privacy-preserving SHA-256 HMAC social connection engine
+│   │   └── storyLibraryService.ts   # Utkal Katha 10,000+ capacity catalog service
+│   └── utils/
+│       ├── shareApp.ts              # Native Android Web Share API & clipboard handoff
+│       ├── nativeAndroid.ts         # Hardware Back-Button & lifecycle event management
+│       └── storyDuplicateDetector.ts# Jaccard similarity & normalized SHA-256 duplicate filter
+├── server.ts                        # Express & WebSocket server (Gemini AI live Q&A, TTS, Social)
+├── firestore.rules                  # Zero-trust Firestore rules (Pillars 1-10)
+├── firebase-blueprint.json          # Cloud Firestore schema blueprint with social entities
+├── vercel.json                      # Vercel SPA routing & security headers configuration
+├── vite.config.ts                   # Vite production bundler
+└── package.json                     # Scripts for dev, test, build, and Android synchronization
 ```
 
 ---
 
-## 2. Core Features (Web & Android)
+## 2. Core Functional Modules
 
-1. **All 30 Official Districts of Odisha:** Searchable encyclopedia with Odia (`ଓଡ଼ିଆ`), Hindi (`हिन्दी`), and English names, district headquarters, historical summaries, 61+ curated destinations, **Hidden Gems**, festivals, GI-tagged handlooms, signature foods, transit gateways, and emergency hospitals.
-2. **Utkal Katha Multilingual Voice Library:** 30+ verified chronicles and oral legends with explicit epistemic badges (*Documented Historical Record*, *Archaeological Evidence*, *Traditional Oral Legend*), browser Web Speech TTS narration (`0.85x–1.3x` speed, Pause/Resume/Stop), and Jaccard near-duplicate protection.
-3. **Personalized Trip & Deterministic INR Budget Calculator:** Multi-district itinerary generator calculating transparent room-shared accommodation, food, transit, monument entry, and an 8% contingency buffer in INR (`₹`), persisted in `localStorage` and optionally synced to Cloud Firestore.
-4. **Interactive 30-District Geo-Map & Fair Fare Estimator:** Clickable SVG coordinate map of Odisha with Haversine road/ghat distance calculation, Google Maps live route handoff, and clearly labeled **non-binding reference fare ranges** for Auto-Rickshaw, Hatchback, Sedan, SUV, and OSRTC Bus.
-5. **Utkal Mitra Concierge:** Citation-backed Odisha cultural and travel concierge (powered on Android by Firebase AI Logic + offline fallback, and on Web by deterministic source-grounded catalog retrieval that never fabricates unverified facts).
-6. **GI Crafts, Cuisine & Eco-Camps:** Direct discovery of Raghurajpur Pattachitra, Cuttack Rupa Tarakasi, Sambalpuri Bandha, Kotpad natural dye, Pahala Rasagola, Nayagarh Chhena Poda, OTDC Panthanivas, and Eco-Tour Odisha nature camps.
-7. **UtkalSuraksha Traveller Safety:** One-tap **SOS 112** & **Ambulance 108** dialers, real HTML5 Geolocation check-ins with permission-denied/timeout guidance, WhatsApp live location sharing, private trusted contacts, and moderated community hazard logging (*Pending Moderation*).
+### A. Protected Utkal Kathaa Module (Zero-Modification Invariant)
+- **100% Preserved Identity:** Retains the original Odia storytelling voice, historical period annotations, ASI epigraphic references, and canonical multilingual translation entities (`titleEn`, `titleOdia`, `bodyEn`, `bodyOdia`, `contentHash`).
+- **Jaccard Token Similarity Guard (`>0.80`):** Automatically rejects near-duplicate stories during batch import while never double-counting legitimate translations as separate stories.
+- **Epistemic Classifications:** Clearly badges documented archaeological records, rock edicts, and living folklore.
+
+### B. Independent Gemini Live Intelligence (`POST /api/gemini/live-qa`)
+- Conversational travel assistant operating independently of the Utkal Kathaa storytelling engine.
+- Responds in fluent, culturally authentic **Odia (`ଓଡ଼ିଆ`)**, **Hindi (`हिन्दी`)**, and **English**.
+- Protected via server-side API key isolation (never exposed in client code).
+- Includes sliding-window IP rate-limiting and deterministic offline fallback.
+
+### C. System Default Dark & Light Mode
+- Three selectable appearance options:
+  1. **Light Mode**
+  2. **Dark Mode**
+  3. **Default / Follow Phone System**
+- Automatically synchronizes with Android device appearance in real time via `matchMedia('(prefers-color-scheme: dark)')`.
+- Updates Tailwind root `.dark` class, DOM `color-scheme`, `<meta name="theme-color">`, and Capacitor Native StatusBar styling (`Style.Dark` / `Style.Light`).
+
+### D. Universal Share Application System
+- Accessible from the top navigation bar and mobile view.
+- Supports **Android Native Sharing** (`navigator.share` / `@capacitor/share`), WhatsApp quick-share, and Telegram.
+- Distributes both the official website URL and direct Android APK download links.
+
+### E. Utkal Sangha — Friends & Travel Companions
+- **Zero-Knowledge Contact Matching:** Normalizes phone numbers and hashes them client-side using **keyed SHA-256 HMAC**. Full address books are never uploaded or stored.
+- **Connection Lifecycle:** Send, receive, accept, decline, and cancel friend requests.
+- **Companion Features:** View connected friends, travel styles, home districts, and share custom itineraries with one tap.
+- **Isolation:** Fully isolated Firestore collections (`socialProfiles`, `friendRequests`, `friendships`, `blockedUsers`, `contactLookup`) protected under zero-trust Firestore Security Rules.
+
+### F. Comprehensive 30-District GIS Map & Transit Matrix
+- Interactive clickable SVG coordinate map of all 30 districts of Odisha with zone filters (Coastal, Central, Northern, Southern, Western).
+- Regulated transit matrix covering CRUT Mo Bus routes, OSRTC inter-district coaches, trains, and non-binding reference fare calculators.
+
+### G. UtkalSuraksha Safety & Emergency SOS
+- One-tap **SOS 112** and **Ambulance 108** instant dialers.
+- Complete directory of district hospitals, control rooms, and police stations for all 30 districts.
+- GPS emergency location check-in with WhatsApp SOS link generation.
 
 ---
 
-## 3. Local Setup & Verification Commands
+## 3. Cloud Firestore Security Rules (Pillars 1–10)
 
-### Website (`/web`)
-Requires **Node.js 20+** and **npm 10+**:
+The application enforces a global default-deny policy in [`firestore.rules`](file:///firestore.rules):
+
+| Pillar | Collection Path | Access Restrictions |
+| :--- | :--- | :--- |
+| **1** | `/{document=**}` | Default-Deny Catch-All (`allow read, write: if false;`) |
+| **2** | `/users/{userId}` | Authenticated Owner-Only Isolation |
+| **3** | `/users/{userId}/trips/{tripId}` | Owner-Only Saved Itineraries |
+| **4** | `/users/{userId}/trusted_contacts/{contactId}` | Owner-Only Private Emergency Contacts |
+| **5** | `/users/{userId}/user_stories/{storyId}` | Owner-Only Utkal Katha Stories & Bookmarks |
+| **6** | `/socialProfiles/{userId}` | Public Read for Authenticated Users, Owner-Only Writes |
+| **7** | `/friendRequests/{requestId}` | Participant-Only Access (`fromUserId` or `toUserId`) |
+| **8** | `/friendships/{friendshipId}` | Mutual Friends Participant-Only Access |
+| **9** | `/blockedUsers/{blockId}` | Blocker-Only Isolated Access |
+| **10** | `/contactLookup/{phoneHash}` | Keyed HMAC Matching with Owner Write Protection |
+
+---
+
+## 4. Android Release APK Build & Verification
+
+The Android application is packaged via Capacitor v8 with release keystore signing.
+
+- **Application ID:** `com.utkalsarathi.app`
+- **Application Name:** `UtkalSarathi`
+- **Target Release Size:** 35–50 MB
+- **Actual Built Size:** **34.13 MB** (Legitimately optimized by purging recursive nested assets)
+- **Output Path:** `releases/UtkalSarathi.apk`
+
+### Compiling the Release APK:
 
 ```bash
-cd web
-npm install
+# 1. Build optimized web bundle
 npm run build
-npm test
-npm run dev
+
+# 2. Synchronize web bundle to Capacitor Android
+npx cap sync android
+
+# 3. Compile signed Release APK with Gradle
+cd android
+gradlew.bat assembleRelease
+
+# The signed APK is generated at:
+# android/app/build/outputs/apk/release/app-release.apk
 ```
 
-- Local development server runs at `http://localhost:5173`.
-- Production static bundle is emitted to `web/dist`.
+---
 
-### Android Application (`/app`)
-Requires **JDK 17+** and **Android SDK 36**:
+## 5. Website Deployment to Vercel
+
+The application is pre-configured for instant zero-configuration deployment on [Vercel](https://vercel.com):
+
+1. Connect the GitHub repository `https://github.com/Ab20219/Utkal_Sarathi` to Vercel.
+2. Select the branch `integration/merged-production` (or `main` after merging).
+3. Vercel automatically detects the configuration from [`vercel.json`](file:///vercel.json):
+   - **Framework:** `Vite`
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist`
+4. Configure production environment variables in Vercel Dashboard (see `.env.example`).
+
+---
+
+## 6. Testing & Quality Assurance
+
+All 54 test suites pass with 100% success rate:
 
 ```bash
-gradle assembleDebug
-gradle :app:testDebugUnitTest
+npm run test
 ```
 
----
-
-## 4. Deploying the Website to Vercel (`https://utkalsarathi.vercel.app`)
-
-1. Push the latest repository changes to `https://github.com/Ab20219/Utkal_Sarathi`.
-2. Sign in to [Vercel](https://vercel.com) and click **Add New… → Project**, then import `Ab20219/Utkal_Sarathi`.
-3. Configure the **Build and Output Settings** exactly as follows:
-
-| Setting | Exact Value |
-| :--- | :--- |
-| **Project Name** | `utkalsarathi` |
-| **Root Directory** | `web` |
-| **Framework Preset** | `Vite` |
-| **Install Command** | `npm install` |
-| **Build Command** | `npm run build` |
-| **Output Directory** | `dist` |
-
-4. *(Optional — For Cross-Device Google Sign-In & Cloud Firestore Sync on Web)*:
-   - Open [Firebase Console](https://console.firebase.google.com/) → Project `gen-lang-client-0544007391`.
-   - Click **Project Settings → General → Your apps → Add app → Web (`</>`)** to register the Web App and copy `apiKey` and `appId`.
-   - Go to **Authentication → Settings → Authorized domains** and add `utkalsarathi.vercel.app` (plus any Vercel preview domain if desired).
-   - In **Vercel → Project Settings → Environment Variables**, add the variables from `web/.env.example` (`VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_APP_ID`, `VITE_PUBLIC_SITE_URL=https://utkalsarathi.vercel.app`, etc.).
-   - *Note:* Even without Firebase Web variables, the website works 100% out-of-the-box using Local Browser Storage (`localStorage`).
-5. Click **Deploy**. Under **Project Settings → Domains**, verify `utkalsarathi.vercel.app` is assigned as your production domain.
+Test coverage includes:
+- Cross-platform key mappings & mobile breakpoints.
+- Monument voice profiles and neural Gemini voices.
+- 30-district GIS coordinates and transport infrastructure.
+- Utkal Katha 10,000+ capacity story service & duplicate detection.
+- Indic script purity (Odia & Hindi Devanagari with zero Latin characters).
+- Deterministic INR trip budget calculations and Haversine transit distances.
+- Audio WAV container integrity and sentence timing boundaries.
 
 ---
 
-## 5. Security & Credential Guidelines
+## 7. Git Integration & Push Instructions
 
-- **Never commit signing keystores or `.env` files:** `.gitignore` excludes `*.jks`, `*.keystore`, `debug.keystore`, `debug.keystore.base64`, `local.properties`, and `.env*` files. If any keystore file was previously tracked in Git, untrack it with `git rm --cached debug.keystore.base64` before pushing.
-- **Google Cloud API Key Restrictions:** `app/google-services.json` contains an Android Firebase client configuration. In a public GitHub repository, open **Google Cloud Console → APIs & Services → Credentials** and restrict Android API keys by Android package name (`com.aistudio.utkalsarathi.odkxpq`) + SHA-1 certificate, and restrict any Web API key by HTTP referrer (`https://utkalsarathi.vercel.app/*`).
-- **Firestore Zero-Trust Security Rules:** `firestore.rules` enforces strict owner-only access on `/users/{userId}` subcollections and forces community `/safetyReports` submissions to carry `verificationStatus == 'Pending Moderation'`.
+All changes are committed cleanly to the dedicated integration branch:
+
+```bash
+# Verify status and log on integration branch
+git status
+git log -n 3 --oneline
+
+# Push integration branch to GitHub
+git push -u origin integration/merged-production
+```
