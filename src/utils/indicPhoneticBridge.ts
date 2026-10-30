@@ -20,7 +20,7 @@ export interface BrowserVoiceSelection {
  * Ensures browser speech synthesis voices are populated on mobile devices (Android WebView / Chrome)
  * where window.speechSynthesis.getVoices() returns [] on initial page load.
  */
-export function ensureBrowserVoicesReady(timeoutMs = 3500): Promise<SpeechSynthesisVoice[]> {
+export function ensureBrowserVoicesReady(timeoutMs = 1500): Promise<SpeechSynthesisVoice[]> {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
     return Promise.resolve([]);
   }
@@ -49,10 +49,17 @@ export function ensureBrowserVoicesReady(timeoutMs = 3500): Promise<SpeechSynthe
       if (v && v.length > 0) {
         cleanupAndResolve();
       }
-    }, 80);
+    }, 50);
 
     window.speechSynthesis.onvoiceschanged = cleanupAndResolve;
   });
+}
+
+// Pre-warm browser voices on initial page load in the background
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  try {
+    ensureBrowserVoicesReady(2000).catch(() => {});
+  } catch {}
 }
 
 /**

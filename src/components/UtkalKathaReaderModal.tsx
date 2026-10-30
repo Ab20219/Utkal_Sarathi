@@ -30,6 +30,7 @@ import { AppLanguage, t } from '../data/i18n';
 import { utkalKathaClientV2 } from '../services/utkalKathaClientV2';
 import { UtkalKathaStoryV2, KathaChapterV2, TrilingualTerm } from '../services/utkalKathaServiceV2';
 import { unifiedVoicePipeline } from '../services/unifiedVoicePipeline';
+import { ensureBrowserVoicesReady } from '../utils/indicPhoneticBridge';
 
 interface UtkalKathaReaderModalProps {
   storyId: string | null;
@@ -49,18 +50,23 @@ export const UtkalKathaReaderModal: React.FC<UtkalKathaReaderModalProps> = ({
   const [story, setStory] = useState<UtkalKathaStoryV2 | null>(null);
   const [activeChapterIndex, setActiveChapterIndex] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'chapters' | 'glossary' | 'sources'>('chapters');
+  const [viewMode, setViewMode] = useState<'standard' | 'parallel'>('standard');
+  const [glossarySearch, setGlossarySearch] = useState<string>('');
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [audioSpeed, setAudioSpeed] = useState<number>(1.0);
   const [isFavourited, setIsFavourited] = useState<boolean>(false);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
 
-  // Load story details
+  // Load story details and pre-warm browser voice synthesis
   useEffect(() => {
     if (!storyId || !isOpen) {
       setStory(null);
       setIsPlaying(false);
       return;
     }
+
+    // Pre-warm browser voices on modal open so Android speech synthesis is instantaneous
+    ensureBrowserVoicesReady(1200).catch(() => {});
 
     let isMounted = true;
     utkalKathaClientV2.getStory(storyId).then((data) => {
@@ -353,6 +359,22 @@ export const UtkalKathaReaderModal: React.FC<UtkalKathaReaderModalProps> = ({
 
                   {/* Audio Listen Button & Speed Selector */}
                   <div className="flex items-center gap-2">
+                    {/* View Mode Toggle: Standard vs Trilingual Aligned */}
+                    <button
+                      onClick={() => setViewMode(viewMode === 'standard' ? 'parallel' : 'standard')}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition ${
+                        viewMode === 'parallel'
+                          ? 'bg-[#1ca39e]/20 text-[#1ca39e] border-[#1ca39e]/50'
+                          : 'bg-[#0b0d10] text-[#b6b1a6] border-[#2a3140] hover:text-[#f7f3e8]'
+                      }`}
+                      title="Toggle sentence-aligned trilingual parallel view"
+                    >
+                      <Layers className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">
+                        {viewMode === 'parallel' ? 'Single View' : 'Parallel 3-Lang'}
+                      </span>
+                    </button>
+
                     <button
                       onClick={handlePlayCurrentChapter}
                       className={`px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-2 shadow-lg transition ${
@@ -395,11 +417,57 @@ export const UtkalKathaReaderModal: React.FC<UtkalKathaReaderModalProps> = ({
                 </div>
 
                 {/* Chapter Prose Content */}
-                <div className="text-[#f7f3e8] text-sm sm:text-base leading-relaxed space-y-3 font-sans">
-                  <p className="whitespace-pre-line">
-                    {getChapterContent(currentChapter)}
-                  </p>
-                </div>
+                {viewMode === 'standard' ? (
+                  <div className="text-[#f7f3e8] text-sm sm:text-base leading-relaxed space-y-3 font-sans">
+                    <p className="whitespace-pre-line">
+                      {getChapterContent(currentChapter)}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* English Original */}
+                    <div className="p-3.5 rounded-xl bg-[#0b0d10] border border-[#ff7a1a]/30 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-[#ff7a1a]/20 text-[#ff7a1a]">
+                          English Master Edition
+                        </span>
+                        <span className="text-[10px] text-[#b6b1a6]">{currentChapter.wordCountEn} words</span>
+                      </div>
+                      <h4 className="text-sm font-bold text-[#f7f3e8]">{currentChapter.titleEn}</h4>
+                      <p className="text-xs sm:text-sm text-[#e2ded5] leading-relaxed whitespace-pre-line">
+                        {currentChapter.contentEn}
+                      </p>
+                    </div>
+
+                    {/* Odia Translation */}
+                    <div className="p-3.5 rounded-xl bg-[#0b0d10] border border-[#e5b85b]/30 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-[#e5b85b]/20 text-[#e5b85b]">
+                          ଓଡ଼ିଆ ଅନୁବାଦ (Original Odia Script)
+                        </span>
+                        <span className="text-[10px] text-[#b6b1a6]">{currentChapter.wordCountOr} words</span>
+                      </div>
+                      <h4 className="text-sm font-bold text-[#e5b85b]">{currentChapter.titleOr}</h4>
+                      <p className="text-xs sm:text-sm text-[#f7f3e8] leading-relaxed whitespace-pre-line font-serif-brand">
+                        {currentChapter.contentOr}
+                      </p>
+                    </div>
+
+                    {/* Hindi Translation */}
+                    <div className="p-3.5 rounded-xl bg-[#0b0d10] border border-[#1ca39e]/30 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-[#1ca39e]/20 text-[#1ca39e]">
+                          हिन्दी अनुवाद (Hindi Script Alignment)
+                        </span>
+                        <span className="text-[10px] text-[#b6b1a6]">{currentChapter.wordCountHi} words</span>
+                      </div>
+                      <h4 className="text-sm font-bold text-[#1ca39e]">{currentChapter.titleHi}</h4>
+                      <p className="text-xs sm:text-sm text-[#f7f3e8] leading-relaxed whitespace-pre-line">
+                        {currentChapter.contentHi}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* In-Chapter Trilingual Vocabulary Highlights */}
                 {currentChapter.vocabulary && currentChapter.vocabulary.length > 0 && (
@@ -464,7 +532,7 @@ export const UtkalKathaReaderModal: React.FC<UtkalKathaReaderModalProps> = ({
 
           {activeTab === 'glossary' && (
             <div className="space-y-4">
-              <div className="bg-[#1a1e27] p-4 rounded-xl border border-[#2a3140] flex items-center justify-between">
+              <div className="bg-[#1a1e27] p-4 rounded-xl border border-[#2a3140] flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h4 className="text-sm font-bold text-[#e5b85b]">
                     Trilingual Word-by-Word Historical Vocabulary
@@ -473,10 +541,28 @@ export const UtkalKathaReaderModal: React.FC<UtkalKathaReaderModalProps> = ({
                     Compare key historical terms, architectural orders, and cultural concepts across English, Odia, and Hindi.
                   </p>
                 </div>
+                <input
+                  type="text"
+                  value={glossarySearch}
+                  onChange={(e) => setGlossarySearch(e.target.value)}
+                  placeholder="Filter terms (EN / ଓଡ଼ିଆ / हिन्दी)..."
+                  className="bg-[#0b0d10] text-[#f7f3e8] placeholder-[#b6b1a6] text-xs px-3 py-1.5 rounded-lg border border-[#2a3140] focus:border-[#e5b85b] outline-none"
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {story.vocabularyGlossary.map((term, i) => (
+                {story.vocabularyGlossary
+                  .filter((term) => {
+                    if (!glossarySearch.trim()) return true;
+                    const q = glossarySearch.toLowerCase();
+                    return (
+                      term.term.toLowerCase().includes(q) ||
+                      term.odia.toLowerCase().includes(q) ||
+                      term.hindi.toLowerCase().includes(q) ||
+                      term.context.toLowerCase().includes(q)
+                    );
+                  })
+                  .map((term, i) => (
                   <div
                     key={i}
                     className="bg-[#1a1e27] border border-[#2a3140] rounded-xl p-4 flex flex-col justify-between gap-2 shadow"

@@ -1,0 +1,3 @@
+@echo off
+echo Starting UtkalSarathi Development Server...
+call npm.cmd run dev

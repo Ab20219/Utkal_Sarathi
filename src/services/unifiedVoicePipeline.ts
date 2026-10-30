@@ -248,6 +248,13 @@ class UnifiedVoicePipelineService {
       return { success: false, engine: 'none', voiceLabel: 'None', error: 'No text provided' };
     }
 
+    // Synchronously prime speech synthesis and audio context within user touch gesture
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.resume();
+      } catch {}
+    }
+
     // 1. Immediately stop any previous audio or speech
     this.stopAll();
 
@@ -338,9 +345,10 @@ class UnifiedVoicePipelineService {
       onTimeUpdate,
     } = request;
 
-    // Attempt Server TTS (Gemini Neural / High Definition voice)
+    // Attempt Server TTS (Gemini Neural / High Definition voice) with strict 1500ms timeout
+    let ttsTimeoutId: any = null;
     try {
-      const response = await fetchApi('/api/tts', {
+      const fetchPromise = fetchApi('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -350,6 +358,18 @@ class UnifiedVoicePipelineService {
         }),
         signal: abortController.signal,
       });
+
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        ttsTimeoutId = setTimeout(() => {
+          try {
+            abortController.abort();
+          } catch {}
+          reject(new Error('Cloud TTS timeout: gesture preserved'));
+        }, 1500);
+      });
+
+      const response = await Promise.race([fetchPromise, timeoutPromise]);
+      if (ttsTimeoutId) clearTimeout(ttsTimeoutId);
 
       if (response.ok) {
         const data = await response.json();
@@ -454,6 +474,11 @@ class UnifiedVoicePipelineService {
         lang,
         mode: err?.message || 'NetworkError',
       });
+    } finally {
+      if (ttsTimeoutId) {
+        clearTimeout(ttsTimeoutId);
+        ttsTimeoutId = null;
+      }
     }
 
     // Fallback to Browser Speech Synthesis

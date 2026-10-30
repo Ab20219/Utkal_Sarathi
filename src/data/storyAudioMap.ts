@@ -87,7 +87,13 @@ export function getStoryAudioUrl(
   storyOrDistrictId: string,
   lang: 'en' | 'or' | 'hi'
 ): string | null {
-  // Return null so the Unified Voice Pipeline dynamically generates authentic neural speech
-  // or uses high-fidelity on-device speech synthesis with genuine language verification.
-  return null;
+  if (!storyOrDistrictId) return null;
+  const normalizedKey =
+    STORY_ID_TO_AUDIO_MAP[storyOrDistrictId] ||
+    DISTRICT_TO_AUDIO_MAP[storyOrDistrictId.toLowerCase()] ||
+    (storyOrDistrictId.startsWith('story-') ? storyOrDistrictId : null);
+
+  if (!normalizedKey) return null;
+
+  return `/offline-audio/${normalizedKey}-${lang}-seg0.mp3`;
 }
